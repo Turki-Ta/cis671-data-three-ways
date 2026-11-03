@@ -1,0 +1,346 @@
+<!doctype html>
+<!--
+  index.html: the story page for Module Two - Data Three Ways.
+
+  One question, three visualizations on three platforms:
+    1. Altair linked views       altair_export.html, shown in an iframe
+    2. D3 connected scatterplot  drawn live by d3_vis.js and d3_story.js
+    3. Seaborn small multiples   img/vis3_seaborn_diverging.png
+
+  The narrative copy sits in elements with fixed ids so it can be revised
+  without touching the layout: copy-intro, copy-vis1, copy-vis2, copy-vis3,
+  copy-synthesis. A span with a data-fact attribute holds a number; d3_story.js
+  recomputes it from data/decoupling_data.js on load, and the text typed here
+  is what a reader without JavaScript sees. Keep the spans when editing.
+
+  No build step and no external request: D3 is in vendor/, there are no web
+  fonts, and the page also works when opened straight from disk.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Decoupling or outsourcing? | Module Two - Data Three Ways</title>
+<meta name="description" content="Three visualizations of GDP and CO2 per capita, 1990-2022: has growth decoupled from emissions, or were the emissions moved abroad?">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="byline">Module Two - Data Three Ways | Taher Turki | October 2026</p>
+    <h1>Decoupling or outsourcing?</h1>
+    <p class="standfirst">Three views of one dataset on growth, carbon and trade, 1990-2022.</p>
+    <nav class="toc" aria-label="Sections of this page">
+      <ul>
+        <li><a href="#question">The question</a></li>
+        <li><a href="#vis1">Visualization 1</a></li>
+        <li><a href="#vis2">Visualization 2</a></li>
+        <li><a href="#vis3">Visualization 3</a></li>
+        <li><a href="#synthesis">Together</a></li>
+        <li><a href="#sources">Sources</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section" id="question" aria-labelledby="question-h">
+    <div class="wrap">
+      <h2 id="question-h">The central question</h2>
+      <div class="prose" id="copy-intro">
+        <p class="question">Has economic growth in post-industrial nations genuinely
+          decoupled from carbon emissions, or have wealthy countries merely outsourced
+          their footprint by importing emissions-intensive goods from developing
+          nations?</p>
+        <p>This page remixes Hannah Ritchie's Our World in Data article
+          <cite>Many countries have decoupled economic growth from CO2 emissions, even if we take offshored production into account</cite> (2021), with
+          the same publisher's CO2 dataset for
+          <span data-fact="year_first">1990</span>-<span data-fact="year_last">2022</span>.
+          It follows six countries: the United States, the United Kingdom, Germany and
+          Sweden, which are high-income economies, and China and India, the two largest
+          developing economies.</p>
+        <p>The two answers predict different things. If rich countries cut their emissions
+          only by moving production abroad, the CO2 counted where goods are consumed would
+          not fall. If the decoupling is real, it falls on both counts.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how-to-read" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h">How to read this page</h2>
+      <dl class="defs">
+        <div>
+          <dt>Production-based CO2</dt>
+          <dd>What is emitted inside a country's borders. Also called territorial.</dd>
+        </div>
+        <div>
+          <dt>Consumption-based CO2</dt>
+          <dd>Production-based CO2 plus the emissions embodied in imports, minus those
+            embodied in exports.</dd>
+        </div>
+        <div>
+          <dt>Net balance</dt>
+          <dd>Consumption minus production, in tonnes per person. Above zero the country is
+            a net importer of embodied CO2; below zero it is a net exporter.</dd>
+        </div>
+        <div>
+          <dt>Colour</dt>
+          <dd><span class="swatch swatch-consumption" aria-hidden="true"></span>Blue is the
+            consumption side and
+            <span class="swatch swatch-production" aria-hidden="true"></span>orange the
+            production side wherever a chart separates the two. In visualization 2 colour
+            names the country instead.</dd>
+        </div>
+      </dl>
+      <div class="prose">
+        <p>All values are per person. GDP per capita is in international-$ at 2011 prices.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="vis1" aria-labelledby="vis1-h">
+    <div class="wrap">
+      <div class="vis-head">
+        <h2 id="vis1-h">Visualization 1: linked views of growth and the net balance</h2>
+        <span class="tool">Altair</span>
+      </div>
+      <div class="prose" id="copy-vis1">
+        <p>The top panel shows one country's GDP per capita and its CO2 per capita on both
+          accounts, as percent change since 1990. The scatter below places every country
+          that has a World Bank income group by its GDP per capita and its net balance,
+          averaged over the years brushed in the top panel. Drag across the years to move
+          the window, and change the country with the menu or by clicking a ringed
+          bubble.</p>
+        <p>Most countries in every income group sit a little above zero, as small net
+          importers. The exporting side is a short list of large economies, led by China
+          and India.</p>
+      </div>
+      <figure class="card vis-body">
+        <div class="pending" id="vis1-pending" hidden>
+          <strong>Visualization 1 has not been exported yet.</strong>
+          Run <code>python scripts/vis1_altair_linked.py</code> to write
+          <code>web/altair_export.html</code>, then reload this page.
+        </div>
+        <iframe class="frame" id="vis1-frame" data-src="altair_export.html" loading="lazy"
+                title="Visualization 1: linked views built with Altair" hidden></iframe>
+        <noscript><p>The chart is interactive and needs JavaScript.
+          <a href="altair_export.html">Open visualization 1 on its own page.</a></p></noscript>
+        <figcaption id="vis1-caption" hidden>Interactive: brush the years in the top panel.
+          <a href="altair_export.html">Open visualization 1 on its own page.</a></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="vis2" aria-labelledby="vis2-h">
+    <div class="wrap">
+      <div class="vis-head">
+        <h2 id="vis2-h">Visualization 2: the path each country took</h2>
+        <span class="tool">D3 v7</span>
+      </div>
+      <div class="prose" id="copy-vis2">
+        <p>Each line follows one country through <span data-fact="n_years">33</span> years,
+          with GDP per capita along the horizontal axis and consumption-based CO2 per capita
+          up the vertical axis. Time is not on an axis: it runs along the line, so drag the
+          year slider or press play. The four steps below walk through one reading, and the
+          production-based path shows the gap between what a country emits and what it
+          consumes.</p>
+        <p>The grey rays mark a constant carbon intensity of income. A path that crosses
+          to a shallower ray is decoupling in relative terms: less CO2 for each dollar. A
+          path that also heads downward is decoupling in absolute terms: less CO2 for each
+          person. All six countries crossed to shallower rays. Only the four high-income
+          countries turned downward.</p>
+      </div>
+      <div class="vis-body" data-decoupling-app>
+        <noscript>This chart is drawn in the browser and needs JavaScript.</noscript>
+      </div>
+      <p class="vis-note">Interactive: hover or use the arrow keys for values.
+        <a href="d3_embed.html">Open visualization 2 on its own page.</a></p>
+    </div>
+  </section>
+
+  <section class="section" id="vis3" aria-labelledby="vis3-h">
+    <div class="wrap">
+      <div class="vis-head">
+        <h2 id="vis3-h">Visualization 3: the gap, country by country</h2>
+        <span class="tool">Seaborn and Matplotlib</span>
+      </div>
+      <div class="prose" id="copy-vis3">
+        <p>The net balance itself, one panel per country on shared axes. Blue areas above
+          zero are years in which a country consumed more CO2 than it emitted; orange areas
+          below zero are years in which it emitted more than it consumed. The United
+          Kingdom's import balance went from
+          <span data-fact="gbr_net_1990">+1.12 t</span> per person in 1990 to
+          <span data-fact="gbr_net_2007">+3.34 t</span> in 2007 and has eased to
+          <span data-fact="gbr_net_2022">+2.81 t</span>.</p>
+      </div>
+      <figure class="card vis-body">
+        <div class="pending" id="vis3-pending" hidden>
+          <strong>Visualization 3 has not been rendered yet.</strong>
+          Run <code>python scripts/vis3_seaborn_diverging.py</code> and then
+          <code>python scripts/capture_web.py</code>, which copies the figure to
+          <code>web/img/</code>.
+        </div>
+        <img class="figure-img" id="vis3-img" src="img/vis3_seaborn_diverging.png"
+             loading="lazy" decoding="async"
+             alt="Six small charts, one per country, of the net balance of embodied CO2 per person from 1990 to 2022. The United States, the United Kingdom, Germany and Sweden are above zero in 2022, as net importers. China and India are below zero, as net exporters.">
+        <figcaption id="vis3-caption">Static figure. Net balance of embodied CO2 per person,
+          consumption minus production, 1990-2022.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis" aria-labelledby="synthesis-h">
+    <div class="wrap">
+      <h2 id="synthesis-h">What the three views say together</h2>
+      <div class="prose" id="copy-synthesis">
+        <p>The decoupling is real on both accounts. From 1990 to 2022 GDP per capita rose in
+          all four high-income countries while their CO2 per capita fell, whether it is
+          counted where it is emitted or where the goods are consumed.</p>
+        <p>Trade still changes the size of the result. In the United Kingdom production-based
+          CO2 per capita fell <span data-fact="gbr_prod_change_abs">57%</span> and
+          consumption-based CO2 <span data-fact="gbr_cons_change_abs">36%</span>. The United
+          States (<span data-fact="usa_prod_change_abs">27%</span> and
+          <span data-fact="usa_cons_change_abs">18%</span>) and Germany
+          (<span data-fact="deu_prod_change_abs">40%</span> and
+          <span data-fact="deu_cons_change_abs">34%</span>) show the same order, and Sweden
+          the reverse (<span data-fact="swe_prod_change_abs">48%</span> and
+          <span data-fact="swe_cons_change_abs">52%</span>). All four were still net
+          importers of embodied CO2 in 2022, by
+          <span data-fact="usa_net_2022">+1.49 t</span> per person in the United States,
+          <span data-fact="gbr_net_2022">+2.81 t</span> in the United Kingdom,
+          <span data-fact="deu_net_2022">+2.03 t</span> in Germany and
+          <span data-fact="swe_net_2022">+2.86 t</span> in Sweden, so their territorial
+          figures understate what they consume. China
+          (<span data-fact="chn_net_2022">-0.90 t</span>) and India
+          (<span data-fact="ind_net_2022">-0.34 t</span>) were net exporters.</p>
+        <p>How much of each territorial cut did a wider import balance give back?
+          <span data-fact="usa_offset_share">33%</span> in the United States,
+          <span data-fact="gbr_offset_share">29%</span> in the United Kingdom and
+          <span data-fact="deu_offset_share">4%</span> in Germany; in Sweden the balance
+          shrank. In the United States and the United Kingdom the giving back happened
+          between 1990 and 2007, when their consumption-based CO2 rose while their
+          production-based CO2 fell or stood still. Since 2007 both accounts have fallen
+          together.</p>
+        <p>Imported emissions are part of the picture, but they do not explain the fall
+          away: the consumption-based figures fell too.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="sources" aria-labelledby="sources-h">
+    <div class="wrap">
+      <h2 id="sources-h">Sources</h2>
+      <ul class="sources">
+        <li>Data: Our World in Data, CO2 and Greenhouse Gas Emissions dataset
+          (<a href="https://github.com/owid/co2-data">github.com/owid/co2-data</a>),
+          retrieved <span data-fact="retrieved">4 October 2026</span>. CO2 emissions on both
+          accounts are from the Global Carbon Budget 2025; GDP is from the Maddison
+          Project Database 2023.</li>
+        <li>Income groups: World Bank country classification by income for fiscal year
+          2027, as served by the World Bank API on the same day.</li>
+        <li>Original article:
+          <a href="https://ourworldindata.org/co2-gdp-decoupling">Hannah Ritchie (2021), Many countries have decoupled economic growth from CO2 emissions, even if we take offshored production into account, Our World in Data</a>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="made" aria-labelledby="made-h">
+    <div class="wrap">
+      <h2 id="made-h">How this page was made</h2>
+      <div class="prose">
+        <p>Visualization 1 was built in Python with Altair, visualization 2 in the browser
+          with D3 v7, and visualization 3 in Python with Seaborn and Matplotlib. One
+          preparation script writes the tables that all three read, so the numbers agree
+          across the page.</p>
+        <p>Visualization 2, the D3 chart, was built with AI coding assistance. Visualization 1,
+          visualization 3, the data preparation scripts and the written analysis were completed
+          independently, without AI assistance. The report carries the full disclosure for each
+          visualization.</p>
+        <p>The page has no build step and loads nothing from other sites: D3 is bundled in
+          the <code>vendor</code> folder under its ISC licence.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>Module Two - Data Three Ways | Taher Turki | October 2026</p>
+  </div>
+</footer>
+
+<script src="vendor/d3.v7.min.js"></script>
+<script src="data/decoupling_data.js"></script>
+<script src="d3_vis.js"></script>
+<script src="d3_story.js"></script>
+<script>
+// The other two visualizations are written by their own scripts and may not
+// exist yet. Each one is shown when its file is there and replaced by a short
+// note when it is not, so the page never shows a broken frame or image.
+(function () {
+  "use strict";
+
+  var frame = document.getElementById("vis1-frame");
+  var url = frame.getAttribute("data-src");
+
+  function showFrame(found) {
+    document.getElementById("vis1-pending").hidden = found;
+    document.getElementById("vis1-caption").hidden = !found;
+    frame.hidden = !found;
+    if (found) { frame.src = url; }
+  }
+
+  // On a server the frame takes the height of the page inside it. From disk
+  // the browser keeps the two documents apart, and the CSS height stands.
+  frame.addEventListener("load", function () {
+    try {
+      var inner = frame.contentDocument;
+      var resize = function () {
+        var height = inner.documentElement.scrollHeight;
+        if (height > 200) { frame.style.height = height + "px"; }
+      };
+      resize();
+      if (window.ResizeObserver) { new ResizeObserver(resize).observe(inner.body); }
+    } catch (error) { /* a file: page cannot be measured from outside */ }
+  });
+
+  if (window.location.protocol === "file:") {
+    // fetch() cannot read file: addresses, but an <object> reports whether
+    // the file it points at could be loaded.
+    var probe = document.createElement("object");
+    probe.type = "text/html";
+    probe.width = 1;
+    probe.height = 1;
+    probe.tabIndex = -1;
+    probe.setAttribute("aria-hidden", "true");
+    probe.style.cssText = "position:absolute;left:-10px;top:0;visibility:hidden";
+    probe.onload = function () { probe.remove(); showFrame(true); };
+    probe.onerror = function () { probe.remove(); showFrame(false); };
+    probe.data = url;
+    document.body.appendChild(probe);
+  } else {
+    // The whole file is read, so the frame that follows is served from the cache.
+    fetch(url).then(function (reply) {
+      return reply.blob().then(function () { showFrame(reply.ok); });
+    }).catch(function () { showFrame(false); });
+  }
+
+  var image = document.getElementById("vis3-img");
+  function imageMissing() {
+    image.hidden = true;
+    document.getElementById("vis3-caption").hidden = true;
+    document.getElementById("vis3-pending").hidden = false;
+  }
+  image.addEventListener("error", imageMissing);
+  if (image.complete && image.naturalWidth === 0 && image.currentSrc) { imageMissing(); }
+})();
+</script>
+</body>
+</html>
