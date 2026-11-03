@@ -1,0 +1,85 @@
+==============================================================================
+INDEPENDENT VERIFICATION OF THE PUBLISHED NUMBERS
+==============================================================================
+   Recomputed here from the raw files in inputs/ with the csv module and the
+   definitions alone, then compared with the 'result:' lines each script printed.
+
+fetch_inputs.py
+   publishes no values
+   the script's own checks: 7 passed, 0 failed
+
+prepare_data.py
+   335 values: 335 recomputed (335 agree, 0 disagree)
+   the script's own checks: 18 passed, 0 failed
+
+original_story.py
+   18 values: 12 recomputed (12 agree, 0 disagree), 6 measure the output, not the data
+   the script's own checks: 11 passed, 0 failed
+
+vis1_altair_linked.py
+   59 values: 57 recomputed (57 agree, 0 disagree), 2 measure the output, not the data
+   the script's own checks: 43 passed, 0 failed
+
+vis3_seaborn_diverging.py
+   60 values: 59 recomputed (59 agree, 0 disagree), 1 measures the output, not the data
+   the script's own checks: 54 passed, 0 failed
+
+capture_web.py
+   46 values: 25 recomputed (25 agree, 0 disagree), 21 measure the output, not the data
+   the script's own checks: 101 passed, 0 failed
+
+headline values (prepare_data.py against the recomputation)
+   result                                          script    recomputed   agreement
+   usa_gdp_pc_change_pct                          56.3328       56.3328   PASS
+   usa_prod_change_pct                           -26.9170      -26.9170   PASS
+   usa_cons_change_pct                           -18.2547      -18.2547   PASS
+   usa_net_pc_1990                                -0.3174       -0.3174   PASS
+   usa_net_pc_2022                                 1.4950        1.4950   PASS
+   usa_net_mt_2022                               510.5859      510.5859   PASS
+   usa_offset_share_pct                           33.2442       33.2442   PASS
+   gbr_gdp_pc_change_pct                          46.1470       46.1470   PASS
+   gbr_prod_change_pct                           -56.5105      -56.5105   PASS
+   gbr_cons_change_pct                           -36.4805      -36.4805   PASS
+   gbr_net_pc_1990                                 1.1167        1.1167   PASS
+   gbr_net_pc_2022                                 2.8110        2.8110   PASS
+   gbr_net_mt_2022                               191.6524      191.6524   PASS
+   gbr_offset_share_pct                           28.5745       28.5745   PASS
+   deu_gdp_pc_change_pct                          83.8728       83.8728   PASS
+   deu_prod_change_pct                           -39.9818      -39.9818   PASS
+   deu_cons_change_pct                           -33.7406      -33.7406   PASS
+   deu_net_pc_1990                                 1.8222        1.8222   PASS
+   deu_net_pc_2022                                 2.0333        2.0333   PASS
+   deu_net_mt_2022                               170.9702      170.9702   PASS
+   deu_offset_share_pct                            3.9901        3.9901   PASS
+   swe_gdp_pc_change_pct                          67.8870       67.8870   PASS
+   swe_prod_change_pct                           -48.3453      -48.3453   PASS
+   swe_cons_change_pct                           -51.7350      -51.7350   PASS
+   swe_net_pc_1990                                 6.3974        6.3974   PASS
+   swe_net_pc_2022                                 2.8603        2.8603   PASS
+   swe_net_mt_2022                                29.9971       29.9971   PASS
+   swe_offset_share_pct                         -109.0583     -109.0583   PASS
+   chn_gdp_pc_change_pct                         544.7950      544.7950   PASS
+   chn_prod_change_pct                           281.7095      281.7095   PASS
+   chn_cons_change_pct                           257.5083      257.5083   PASS
+   chn_net_pc_1990                                -0.1064       -0.1064   PASS
+   chn_net_pc_2022                                -0.9015       -0.9015   PASS
+   chn_net_mt_2022                             -1284.7744    -1284.7744   PASS
+   chn_offset_share_pct                           13.1093       13.1093   PASS
+   ind_gdp_pc_change_pct                         263.0611      263.0611   PASS
+   ind_prod_change_pct                           197.2355      197.2355   PASS
+   ind_cons_change_pct                           143.4117      143.4117   PASS
+   ind_net_pc_1990                                 0.0062        0.0062   PASS
+   ind_net_pc_2022                                -0.3446       -0.3446   PASS
+   ind_net_mt_2022                              -491.1401     -491.1401   PASS
+   ind_offset_share_pct                           26.6140       26.6140   PASS
+   complete_countries                               115.0         115.0   PASS
+   placeholder_country_years                         39.0          39.0   PASS
+   panel_countries                                  110.0         110.0   PASS
+   classified_countries                             109.0         109.0   PASS
+   group_high_net_mt_1990                           371.6         371.6   PASS
+   group_high_net_mt_2022                          1566.3        1566.3   PASS
+   group_upper_middle_net_mt_2022                 -1325.1       -1325.1   PASS
+   kuwait_net_mt_1991                              -473.2        -473.2   PASS
+
+------------------------------------------------------------------------------
+verification: all 488 recomputed values agree and no script check failed

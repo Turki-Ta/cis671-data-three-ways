@@ -1,0 +1,36 @@
+BUILDING MODULE TWO REPORT
+========================================================================
+
+OUTPUTS
+  wrote report\module02_report.docx               6741 KB   working copy, 19 callouts
+  wrote report\module02_report_clean.docx         6734 KB   clean submission copy, no callouts
+  wrote report\module02_report.md                   66 KB   Markdown twin of the clean copy
+  wrote screenshots\SCREENSHOT_INSTRUCTIONS.md      22 KB   19 screenshots
+
+SECTIONS
+  key             status     words  shots (marker / appended)
+  ------------------------------------------------------------
+  narrative       ok          1676  1 (1 / 0)
+  remix           ok          1114  3 (3 / 0)
+  vis1            ok          1589  4 (4 / 0)
+  vis2            ok          1591  4 (4 / 0)
+  vis3            ok          1279  4 (4 / 0)
+  synthesis       ok           954  1 (1 / 0)
+  extra           ok           417  2 (2 / 0)
+  references      ok           783  0 (0 / 0)
+  ------------------------------------------------------------
+  total                       9403
+
+FIGURES
+  planned 19, embedded 19, placeholder 0
+
+APPENDIX A
+  not built: report_spec.APPENDIX_FILES is empty
+
+STUDENT TO-DO  (boxed in the working copy, left out of the clean copy and the .md)
+  - vis1: Complete this disclosure in your own words before submitting: what you checked, changed or...
+  - vis2: The assignment brief designated Visualization 2 as the one hand-coded without AI assistanc...
+  - vis3: Complete this disclosure in your own words before submitting: what you checked, changed or...
+  - extra: Publish web/ (see web/README.md) and add the public URL to this section. Until the page ha...
+
+Done.

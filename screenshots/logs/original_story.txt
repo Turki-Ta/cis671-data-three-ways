@@ -1,0 +1,50 @@
+==============================================================================
+MODULE TWO - THE ORIGINAL STORY'S CHARTS
+==============================================================================
+
+1. Originals re-saved as PNG, no resampling
+-------------------------------------------
+   check: original_owid_line_chart_gbr.png is present in inputs/ ... PASS
+   inputs\original_owid_line_chart_gbr.png  1700 x 1200 px  ->  screenshots\00a_original_owid_line_chart.png
+   check: 00a_original_owid_line_chart.png has the original's pixel dimensions (1700 x 1200) ... PASS
+   result: original_line_chart_width_px = 1700
+   result: original_line_chart_height_px = 1200
+   check: original_owid_line_chart_gbr_chn.png is present in inputs/ ... PASS
+   inputs\original_owid_line_chart_gbr_chn.png  1700 x 1200 px  ->  screenshots\00b_original_owid_two_countries.png
+   check: 00b_original_owid_two_countries.png has the original's pixel dimensions (1700 x 1200) ... PASS
+   result: original_two_countries_width_px = 1700
+   result: original_two_countries_height_px = 1200
+   check: original_owid_arrow_grid.png is present in inputs/ ... PASS
+   inputs\original_owid_arrow_grid.png  2614 x 2736 px  ->  screenshots\00c_original_owid_arrow_grid.png
+   check: 00c_original_owid_arrow_grid.png has the original's pixel dimensions (2614 x 2736) ... PASS
+   result: original_arrow_grid_width_px = 2614
+   result: original_arrow_grid_height_px = 2736
+
+2. The data behind the original line chart (United Kingdom)
+-----------------------------------------------------------
+   check: original_owid_line_chart_gbr.csv is present in inputs/ ... PASS
+   check: the chart's production-based CO2 per person is this project's series, 1990-2022 (worst gap 0.00000 t) ... PASS
+   check: the chart's consumption-based CO2 per person is this project's series (worst gap 0.00000 t) ... PASS
+   GDP per person, 1990 to 2022
+      original chart, World Bank, international-$ at 2021 prices:    33,531 ->    53,980  (+61.0%)
+      this project, Maddison 2023, international-$ at 2011 prices:   26,246 ->    38,358  (+46.1%)
+   result: original_gbr_gdp_pc_change_pct = 60.9849
+   result: maddison_gbr_gdp_pc_change_pct = 46.1470
+   result: original_gbr_prod_change_pct = -56.5105
+   result: original_gbr_cons_change_pct = -36.4805
+   result: original_chart_last_year_gdp = 2025
+   result: original_chart_last_year_cons = 2023
+   check: the two GDP series agree on direction and differ in size by more than 10 percentage points ... PASS
+
+   end-year sensitivity of a two-point comparison (the chart's own series)
+      2005 to 2020: GDP per person -0.8%, consumption-based CO2 per person -44.8%
+   result: original_gbr_gdp_pc_change_2005_2020_pct = -0.7745
+   result: original_gbr_cons_change_2005_2020_pct = -44.7974
+      2005 to 2019: GDP per person +10.5%, consumption-based CO2 per person -38.1%
+   result: original_gbr_gdp_pc_change_2005_2019_pct = 10.4947
+   result: original_gbr_cons_change_2005_2019_pct = -38.1333
+   result: original_gbr_cons_change_2019_2020_pct = -10.7717
+   result: original_gbr_cons_change_2020_2021_pct = 9.6400
+   check: on 2005-2020 the United Kingdom's GDP change is under the grid's 5% threshold, on 2005-2019 it is over it ... PASS
+
+checks: 11 passed, 0 failed

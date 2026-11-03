@@ -1,0 +1,446 @@
+==============================================================================
+MODULE TWO - DATA PREPARATION
+==============================================================================
+   window 1990-2022, base year 1990, focus: United States, United Kingdom, Germany, Sweden, China, India
+
+1. Raw file
+-----------
+   owid-co2-data.csv: 50,411 rows, 254 entities, years 1750-2024
+   gdp                          available 1820-2022
+   consumption_co2_per_capita   available 1990-2024
+   co2_per_capita               available 1750-2024
+
+2. Panel
+--------
+   218 countries have an ISO code and at least one row in 1990-2022
+   115 of them have all of population, gdp, co2, co2_per_capita, consumption_co2, consumption_co2_per_capita
+   in every one of the 33 years; the rest are dropped, not interpolated
+   5 of those carry placeholder consumption figures (equal to the production figure
+   to within 1 part in 100,000) in 39 country-years and are dropped as incomplete:
+      Belgium        1990-1998   (9 years)
+      Botswana       1990-1999   (10 years)
+      Luxembourg     1990-1998   (9 years)
+      South Africa   1990-1999   (10 years)
+      Tunisia             2021   (1 years)
+   110 countries remain; the closest the two accounts come in any of their years is 0.010% of production
+   result: complete_countries = 115
+   result: placeholder_countries = 5
+   result: placeholder_country_years = 39
+   check: panel is 110 countries x 33 years = 3,630 rows ... PASS
+   check: no missing value in any needed or derived column ... PASS
+   check: all six focus countries are in the panel ... PASS
+   check: no placeholder is left: the two CO2 accounts differ by more than 1 part in 100,000 in every row ... PASS
+
+3. Units and identities
+-----------------------
+   check: co2_per_capita = co2 x 1e6 / population (worst relative gap 1.1e-07) ... PASS
+   check: consumption_co2_per_capita = consumption_co2 x 1e6 / population (worst relative gap 1.0e-07) ... PASS
+   check: consumption_co2 - co2 equals OWID's trade_co2 (worst gap 0.0005 Mt) ... PASS
+   check: net balance per person agrees with net balance in Mt (worst gap 0.0000 t) ... PASS
+   GDP per capita in the panel runs from $624 to $163,531 (2011 international-$)
+   net balance per person runs from -350.19 t to +36.17 t
+
+4. Focus countries
+------------------
+                              GDP/person     production t/person    consumption t/person
+   country            1990    2022   chg      1990    2022   chg      1990    2022   chg
+   United States    36,509  57,075  +56%     20.25   14.80  -27%     19.94   16.30  -18%
+   United Kingdom   26,246  38,358  +46%     10.49    4.56  -57%     11.61    7.37  -36%
+   Germany          25,287  46,495  +84%     13.23    7.94  -40%     15.06    9.98  -34%
+   Sweden           28,069  47,125  +68%      6.71    3.47  -48%     13.11    6.33  -52%
+   China             2,934  18,921 +545%      2.15    8.22 +282%      2.05    7.32 +258%
+   India             2,024   7,350 +263%      0.67    1.99 +197%      0.67    1.64 +143%
+
+   net balance = consumption - production, t CO2 per person (+ importer, - exporter)
+   country            1990    2007    2022     max (year)     min (year)   2022 Mt % of prod.
+   United States     -0.32   +1.34   +1.49   +1.92 (2006)   -0.40 (1991)      +511     +10.1%
+   United Kingdom    +1.12   +3.34   +2.81   +3.34 (2004)   +1.12 (1990)      +192     +61.6%
+   Germany           +1.82   +2.33   +2.03   +3.30 (1992)   +1.20 (2015)      +171     +25.6%
+   Sweden            +6.40   +3.94   +2.86   +6.61 (1992)   +2.27 (2020)       +30     +82.5%
+   China             -0.11   -1.14   -0.90   -0.06 (1992)   -1.20 (2008)     -1285     -11.0%
+   India             +0.01   -0.09   -0.34   +0.01 (1990)   -0.34 (2022)      -491     -17.3%
+
+   how much of the territorial cut a wider import balance gave back, 1990-2022
+   country         prod. cut t cons. cut t  net change t  offset share  cons / prod 2022  elasticity (cons)
+   United States          5.45        3.64         +1.81         33.2%             1.101              -0.45
+   United Kingdom         5.93        4.24         +1.69         28.6%             1.616              -1.20
+   Germany                5.29        5.08         +0.21          4.0%             1.256              -0.68
+   Sweden                 3.24        6.78         -3.54       -109.1%             1.825              -1.41
+   China                 -6.06       -5.27         -0.80         13.1%             0.890              +0.68
+   India                 -1.32       -0.97         -0.35         26.6%             0.827              +0.69
+   carbon intensity of income on the consumption account, kg CO2 per international-$
+   country            1990    2022   change
+   United States     0.546   0.286     -48%
+   United Kingdom    0.442   0.192     -57%
+   Germany           0.595   0.215     -64%
+   Sweden            0.467   0.134     -71%
+   China             0.697   0.387     -45%
+   India             0.333   0.223     -33%
+
+   result: usa_gdp_pc_1990 = 36508.8760
+   result: usa_gdp_pc_2022 = 57075.3361
+   result: usa_gdp_pc_change_pct = 56.3328
+   result: usa_prod_pc_1990 = 20.2537
+   result: usa_prod_pc_2022 = 14.8020
+   result: usa_prod_change_pct = -26.9170
+   result: usa_cons_pc_1990 = 19.9363
+   result: usa_cons_pc_2022 = 16.2970
+   result: usa_cons_change_pct = -18.2547
+   result: usa_cons_peak = 22.5081
+   result: usa_cons_peak_year = 2005.0000
+   result: usa_cons_change_to_peak_pct = 12.8997
+   result: usa_gdp_pc_change_to_cons_peak_pct = 35.9155
+   result: usa_cons_change_from_peak_pct = -27.5948
+   result: usa_gdp_pc_change_1990_2007_pct = 39.1397
+   result: usa_prod_change_1990_2007_pct = 0.1319
+   result: usa_cons_change_1990_2007_pct = 8.4593
+   result: usa_gdp_pc_change_2007_2022_pct = 12.3567
+   result: usa_prod_change_2007_2022_pct = -27.0133
+   result: usa_cons_change_2007_2022_pct = -24.6305
+   result: usa_prod_cut_t = 5.4517
+   result: usa_cons_cut_t = 3.6393
+   result: usa_net_change_t = 1.8124
+   result: usa_offset_share_pct = 33.2442
+   result: usa_change_gap_points = -8.6623
+   result: usa_cons_over_prod_2022 = 1.1010
+   result: usa_cons_intensity_1990 = 0.5461
+   result: usa_cons_intensity_2022 = 0.2855
+   result: usa_income_elasticity_cons = -0.4511
+   result: usa_income_elasticity_prod = -0.7018
+   result: usa_net_pc_1990 = -0.3174
+   result: usa_net_pc_2007 = 1.3424
+   result: usa_net_pc_2022 = 1.4950
+   result: usa_net_pc_max = 1.9201
+   result: usa_net_pc_max_year = 2006.0000
+   result: usa_net_pc_min = -0.3978
+   result: usa_net_pc_min_year = 1991.0000
+   result: usa_net_pc_mean_early = -0.0645
+   result: usa_net_pc_mean_late = 1.0233
+   result: usa_gdp_pc_mean_early = 39365.5281
+   result: usa_gdp_pc_mean_late = 53396.4756
+   result: usa_net_mt_1990 = -80.4204
+   result: usa_net_mt_2022 = 510.5859
+   result: usa_trade_share_2022_pct = 10.0998
+   result: usa_cumulative_co2_2022_mt = 425044.0625
+   result: usa_share_global_cumulative_2022_pct = 23.9809
+   result: gbr_gdp_pc_1990 = 26246.2653
+   result: gbr_gdp_pc_2022 = 38358.1242
+   result: gbr_gdp_pc_change_pct = 46.1470
+   result: gbr_prod_pc_1990 = 10.4927
+   result: gbr_prod_pc_2022 = 4.5632
+   result: gbr_prod_change_pct = -56.5105
+   result: gbr_cons_pc_1990 = 11.6094
+   result: gbr_cons_pc_2022 = 7.3742
+   result: gbr_cons_change_pct = -36.4805
+   result: gbr_cons_peak = 12.8747
+   result: gbr_cons_peak_year = 2004.0000
+   result: gbr_cons_change_to_peak_pct = 10.8986
+   result: gbr_gdp_pc_change_to_cons_peak_pct = 32.9456
+   result: gbr_cons_change_from_peak_pct = -42.7229
+   result: gbr_gdp_pc_change_1990_2007_pct = 40.4031
+   result: gbr_prod_change_1990_2007_pct = -13.3367
+   result: gbr_cons_change_1990_2007_pct = 7.0804
+   result: gbr_gdp_pc_change_2007_2022_pct = 4.0910
+   result: gbr_prod_change_2007_2022_pct = -49.8179
+   result: gbr_cons_change_2007_2022_pct = -40.6805
+   result: gbr_prod_cut_t = 5.9295
+   result: gbr_cons_cut_t = 4.2352
+   result: gbr_net_change_t = 1.6943
+   result: gbr_offset_share_pct = 28.5745
+   result: gbr_change_gap_points = -20.0300
+   result: gbr_cons_over_prod_2022 = 1.6160
+   result: gbr_cons_intensity_1990 = 0.4423
+   result: gbr_cons_intensity_2022 = 0.1922
+   result: gbr_income_elasticity_cons = -1.1960
+   result: gbr_income_elasticity_prod = -2.1944
+   result: gbr_net_pc_1990 = 1.1167
+   result: gbr_net_pc_2007 = 3.3381
+   result: gbr_net_pc_2022 = 2.8110
+   result: gbr_net_pc_max = 3.3445
+   result: gbr_net_pc_max_year = 2004.0000
+   result: gbr_net_pc_min = 1.1167
+   result: gbr_net_pc_min_year = 1990.0000
+   result: gbr_net_pc_mean_early = 1.5734
+   result: gbr_net_pc_mean_late = 2.5272
+   result: gbr_gdp_pc_mean_early = 27857.9941
+   result: gbr_gdp_pc_mean_late = 37314.4998
+   result: gbr_net_mt_1990 = 64.0616
+   result: gbr_net_mt_2022 = 191.6524
+   result: gbr_trade_share_2022_pct = 61.6012
+   result: gbr_cumulative_co2_2022_mt = 79458.7109
+   result: gbr_share_global_cumulative_2022_pct = 4.4830
+   result: deu_gdp_pc_1990 = 25286.6517
+   result: deu_gdp_pc_2022 = 46495.2810
+   result: deu_gdp_pc_change_pct = 83.8728
+   result: deu_prod_pc_1990 = 13.2333
+   result: deu_prod_pc_2022 = 7.9424
+   result: deu_prod_change_pct = -39.9818
+   result: deu_cons_pc_1990 = 15.0554
+   result: deu_cons_pc_2022 = 9.9756
+   result: deu_cons_change_pct = -33.7406
+   result: deu_cons_peak = 15.2735
+   result: deu_cons_peak_year = 1992.0000
+   result: deu_cons_change_to_peak_pct = 1.4483
+   result: deu_gdp_pc_change_to_cons_peak_pct = 7.7388
+   result: deu_cons_change_from_peak_pct = -34.6865
+   result: deu_gdp_pc_change_1990_2007_pct = 56.6459
+   result: deu_prod_change_1990_2007_pct = -21.3499
+   result: deu_cons_change_1990_2007_pct = -15.4212
+   result: deu_gdp_pc_change_2007_2022_pct = 17.3812
+   result: deu_prod_change_2007_2022_pct = -23.6897
+   result: deu_cons_change_2007_2022_pct = -21.6596
+   result: deu_prod_cut_t = 5.2909
+   result: deu_cons_cut_t = 5.0798
+   result: deu_net_change_t = 0.2111
+   result: deu_offset_share_pct = 3.9901
+   result: deu_change_gap_points = -6.2412
+   result: deu_cons_over_prod_2022 = 1.2560
+   result: deu_cons_intensity_1990 = 0.5954
+   result: deu_cons_intensity_2022 = 0.2146
+   result: deu_income_elasticity_cons = -0.6758
+   result: deu_income_elasticity_prod = -0.8382
+   result: deu_net_pc_1990 = 1.8222
+   result: deu_net_pc_2007 = 2.3257
+   result: deu_net_pc_2022 = 2.0333
+   result: deu_net_pc_max = 3.2951
+   result: deu_net_pc_max_year = 1992.0000
+   result: deu_net_pc_min = 1.2024
+   result: deu_net_pc_min_year = 2015.0000
+   result: deu_net_pc_mean_early = 2.2952
+   result: deu_net_pc_mean_late = 1.5296
+   result: deu_gdp_pc_mean_early = 28468.2584
+   result: deu_gdp_pc_mean_late = 45171.2653
+   result: deu_net_mt_1990 = 145.2407
+   result: deu_net_mt_2022 = 170.9702
+   result: deu_trade_share_2022_pct = 25.6004
+   result: deu_cumulative_co2_2022_mt = 93969.5859
+   result: deu_share_global_cumulative_2022_pct = 5.3017
+   result: swe_gdp_pc_1990 = 28069.4069
+   result: swe_gdp_pc_2022 = 47124.8912
+   result: swe_gdp_pc_change_pct = 67.8870
+   result: swe_prod_pc_1990 = 6.7087
+   result: swe_prod_pc_2022 = 3.4653
+   result: swe_prod_change_pct = -48.3453
+   result: swe_cons_pc_1990 = 13.1061
+   result: swe_cons_pc_2022 = 6.3257
+   result: swe_cons_change_pct = -51.7350
+   result: swe_cons_peak = 13.2436
+   result: swe_cons_peak_year = 1992.0000
+   result: swe_cons_change_to_peak_pct = 1.0489
+   result: swe_gdp_pc_change_to_cons_peak_pct = -3.0978
+   result: swe_cons_change_from_peak_pct = -52.2360
+   result: swe_gdp_pc_change_1990_2007_pct = 51.0521
+   result: swe_prod_change_1990_2007_pct = -13.8398
+   result: swe_cons_change_1990_2007_pct = -25.8103
+   result: swe_gdp_pc_change_2007_2022_pct = 11.1451
+   result: swe_prod_change_2007_2022_pct = -40.0480
+   result: swe_cons_change_2007_2022_pct = -34.9437
+   result: swe_prod_cut_t = 3.2433
+   result: swe_cons_cut_t = 6.7804
+   result: swe_net_change_t = -3.5371
+   result: swe_offset_share_pct = -109.0583
+   result: swe_change_gap_points = 3.3897
+   result: swe_cons_over_prod_2022 = 1.8254
+   result: swe_cons_intensity_1990 = 0.4669
+   result: swe_cons_intensity_2022 = 0.1342
+   result: swe_income_elasticity_cons = -1.4060
+   result: swe_income_elasticity_prod = -1.2750
+   result: swe_net_pc_1990 = 6.3974
+   result: swe_net_pc_2007 = 3.9432
+   result: swe_net_pc_2022 = 2.8603
+   result: swe_net_pc_max = 6.6085
+   result: swe_net_pc_max_year = 1992.0000
+   result: swe_net_pc_min = 2.2695
+   result: swe_net_pc_min_year = 2020.0000
+   result: swe_net_pc_mean_early = 4.7416
+   result: swe_net_pc_mean_late = 2.7147
+   result: swe_gdp_pc_mean_early = 28824.8701
+   result: swe_gdp_pc_mean_late = 44449.3113
+   result: swe_net_mt_1990 = 54.7528
+   result: swe_net_mt_2022 = 29.9971
+   result: swe_trade_share_2022_pct = 82.5408
+   result: swe_cumulative_co2_2022_mt = 5059.7485
+   result: swe_share_global_cumulative_2022_pct = 0.2855
+   result: chn_gdp_pc_1990 = 2934.4421
+   result: chn_gdp_pc_2022 = 18921.1365
+   result: chn_gdp_pc_change_pct = 544.7950
+   result: chn_prod_pc_1990 = 2.1529
+   result: chn_prod_pc_2022 = 8.2178
+   result: chn_prod_change_pct = 281.7095
+   result: chn_cons_pc_1990 = 2.0465
+   result: chn_cons_pc_2022 = 7.3163
+   result: chn_cons_change_pct = 257.5083
+   result: chn_cons_peak = 7.3163
+   result: chn_cons_peak_year = 2022.0000
+   result: chn_cons_change_to_peak_pct = 257.5083
+   result: chn_gdp_pc_change_to_cons_peak_pct = 544.7950
+   result: chn_cons_change_from_peak_pct = 0.0000
+   result: chn_gdp_pc_change_1990_2007_pct = 166.2420
+   result: chn_prod_change_1990_2007_pct = 144.3539
+   result: chn_cons_change_1990_2007_pct = 101.5549
+   result: chn_gdp_pc_change_2007_2022_pct = 142.1838
+   result: chn_prod_change_2007_2022_pct = 56.2117
+   result: chn_cons_change_2007_2022_pct = 77.3751
+   result: chn_prod_cut_t = -6.0649
+   result: chn_cons_cut_t = -5.2698
+   result: chn_net_change_t = -0.7951
+   result: chn_offset_share_pct = 13.1093
+   result: chn_change_gap_points = 24.2012
+   result: chn_cons_over_prod_2022 = 0.8903
+   result: chn_cons_intensity_1990 = 0.6974
+   result: chn_cons_intensity_2022 = 0.3867
+   result: chn_income_elasticity_cons = 0.6836
+   result: chn_income_elasticity_prod = 0.7187
+   result: chn_net_pc_1990 = -0.1064
+   result: chn_net_pc_2007 = -1.1359
+   result: chn_net_pc_2022 = -0.9015
+   result: chn_net_pc_max = -0.0617
+   result: chn_net_pc_max_year = 1992.0000
+   result: chn_net_pc_min = -1.2029
+   result: chn_net_pc_min_year = 2008.0000
+   result: chn_net_pc_mean_early = -0.2080
+   result: chn_net_pc_mean_late = -0.7940
+   result: chn_gdp_pc_mean_early = 3728.4976
+   result: chn_gdp_pc_mean_late = 15221.7777
+   result: chn_net_mt_1990 = -122.7637
+   result: chn_net_mt_2022 = -1284.7744
+   result: chn_trade_share_2022_pct = -10.9699
+   result: chn_cumulative_co2_2022_mt = 260625.9844
+   result: chn_share_global_cumulative_2022_pct = 14.7044
+   result: ind_gdp_pc_1990 = 2024.3344
+   result: ind_gdp_pc_2022 = 7349.5707
+   result: ind_gdp_pc_change_pct = 263.0611
+   result: ind_prod_pc_1990 = 0.6682
+   result: ind_prod_pc_2022 = 1.9862
+   result: ind_prod_change_pct = 197.2355
+   result: ind_cons_pc_1990 = 0.6744
+   result: ind_cons_pc_2022 = 1.6416
+   result: ind_cons_change_pct = 143.4117
+   result: ind_cons_peak = 1.6416
+   result: ind_cons_peak_year = 2022.0000
+   result: ind_cons_change_to_peak_pct = 143.4117
+   result: ind_gdp_pc_change_to_cons_peak_pct = 263.0611
+   result: ind_cons_change_from_peak_pct = 0.0000
+   result: ind_gdp_pc_change_1990_2007_pct = 82.6813
+   result: ind_prod_change_1990_2007_pct = 75.1432
+   result: ind_cons_change_1990_2007_pct = 60.7809
+   result: ind_gdp_pc_change_2007_2022_pct = 98.7402
+   result: ind_prod_change_2007_2022_pct = 69.7100
+   result: ind_cons_change_2007_2022_pct = 51.3934
+   result: ind_prod_cut_t = -1.3180
+   result: ind_cons_cut_t = -0.9672
+   result: ind_net_change_t = -0.3508
+   result: ind_offset_share_pct = 26.6140
+   result: ind_change_gap_points = 53.8238
+   result: ind_cons_over_prod_2022 = 0.8265
+   result: ind_cons_intensity_1990 = 0.3332
+   result: ind_cons_intensity_2022 = 0.2234
+   result: ind_income_elasticity_cons = 0.6899
+   result: ind_income_elasticity_prod = 0.8449
+   result: ind_net_pc_1990 = 0.0062
+   result: ind_net_pc_2007 = -0.0860
+   result: ind_net_pc_2022 = -0.3446
+   result: ind_net_pc_max = 0.0062
+   result: ind_net_pc_max_year = 1990.0000
+   result: ind_net_pc_min = -0.3446
+   result: ind_net_pc_min_year = 2022.0000
+   result: ind_net_pc_mean_early = -0.0284
+   result: ind_net_pc_mean_late = -0.2620
+   result: ind_gdp_pc_mean_early = 2260.2045
+   result: ind_gdp_pc_mean_late = 6228.5591
+   result: ind_net_mt_1990 = 5.3661
+   result: ind_net_mt_2022 = -491.1401
+   result: ind_trade_share_2022_pct = -17.3478
+   result: ind_cumulative_co2_2022_mt = 59816.2969
+   result: ind_share_global_cumulative_2022_pct = 3.3748
+   check: the four high-income focus countries grew GDP per person and cut consumption-based CO2 per person, 1990-2022 ... PASS
+   check: all four were net importers of embodied CO2 in 2022 ... PASS
+   check: China and India were net exporters of embodied CO2 in 2022 ... PASS
+   check: carbon intensity of income fell in all six countries (relative decoupling) ... PASS
+   check: consumption cut = production cut - change in the net balance, for all six ... PASS
+
+5. Income groups (World Bank classification for fiscal year 2027)
+-----------------------------------------------------------------
+   High income                     46 countries
+   Upper-middle income             30 countries
+   Lower-middle and low income     33 countries
+   absent from the World Bank API response, left out of the scatter: Taiwan
+   result: panel_countries = 110
+   result: classified_countries = 109
+
+   group balance, t CO2 per person           1990    2007    2022   importers in 2022
+   High income                              +0.33   +1.25   +1.16        36 of 46
+   Upper-middle income                      -0.12   -0.59   -0.46        21 of 30
+   Lower-middle and low income              -0.01   -0.04   -0.09        28 of 33
+
+   result: group_high_net_pc_1990 = 0.3257
+   result: group_high_net_mt_1990 = 371.6
+   result: group_high_net_pc_2007 = 1.2545
+   result: group_high_net_mt_2007 = 1567.1
+   result: group_high_net_pc_2022 = 1.1641
+   result: group_high_net_mt_2022 = 1566.3
+   result: group_high_net_mt_2008 = 1554.5
+   result: group_high_importers_1990 = 31
+   result: group_high_importers_2022 = 36
+   result: group_high_countries = 46
+   result: group_high_net_mt_extreme_year = 2006
+   result: group_high_net_mt_extreme = 1600.2
+   result: group_upper_middle_net_pc_1990 = -0.1194
+   result: group_upper_middle_net_mt_1990 = -254.5
+   result: group_upper_middle_net_pc_2007 = -0.5851
+   result: group_upper_middle_net_mt_2007 = -1498.2
+   result: group_upper_middle_net_pc_2022 = -0.4630
+   result: group_upper_middle_net_mt_2022 = -1325.1
+   result: group_upper_middle_net_mt_2008 = -1515.4
+   result: group_upper_middle_importers_1990 = 16
+   result: group_upper_middle_importers_2022 = 21
+   result: group_upper_middle_countries = 30
+   result: group_upper_middle_net_mt_extreme_year = 2006
+   result: group_upper_middle_net_mt_extreme = -1525.7
+   result: group_lower_net_pc_1990 = -0.0110
+   result: group_lower_net_mt_1990 = -17.5
+   result: group_lower_net_pc_2007 = -0.0363
+   result: group_lower_net_mt_2007 = -83.5
+   result: group_lower_net_pc_2022 = -0.0934
+   result: group_lower_net_mt_2022 = -274.1
+   result: group_lower_net_mt_2008 = -63.8
+   result: group_lower_importers_1990 = 24
+   result: group_lower_importers_2022 = 28
+   result: group_lower_countries = 33
+   result: group_lower_net_mt_extreme_year = 2013
+   result: group_lower_net_mt_extreme = -275.2
+   result: spearman_gdp_net_1990 = 0.3631
+   result: spearman_gdp_net_2007 = 0.3651
+   result: spearman_gdp_net_2022 = 0.4098
+   result: spearman_gdp_net_window_early = 0.3991
+   result: high_income_importers_window_early = 33
+   result: spearman_gdp_net_window_late = 0.4256
+   result: high_income_importers_window_late = 37
+
+   largest net exporters of embodied CO2 in 2022, Mt: China -1285, India -491, Russia -396, Iran -135, Vietnam -95
+   largest net importers of embodied CO2 in 2022, Mt: United States +511, United Kingdom +192, Japan +172, Germany +171, Singapore +147
+   result: exporters_2022 = 24
+   result: importers_2022 = 86
+   result: exporters_net_mt_2022 = -2771.3
+   result: importers_net_mt_2022 = 2760.3
+   result: exporters_top3_share_pct = 78.3744
+   result: exporter_1_net_mt_2022 = -1284.8
+   result: exporter_2_net_mt_2022 = -491.1
+   result: exporter_3_net_mt_2022 = -396.1
+   check: the three largest exporters in 2022 are China, India and Russia ... PASS
+   result: kuwait_net_mt_1991 = -473.2
+   result: group_high_net_mt_1991 = -12.2
+   result: group_high_net_mt_1991_without_kuwait = 461.0
+   check: high-income countries as a group were net importers in every year but 1991 (Kuwait oil fires), and in 1991 too once Kuwait is set aside ... PASS
+   check: upper-middle-income countries as a group were net exporters in every year ... PASS
+
+6. Files written
+----------------
+   inputs\decoupling_panel.csv          745.9 KB   110 countries x 33 years
+   inputs\decoupling_focus.csv           46.1 KB   6 countries x 33 years
+   inputs\decoupling_summary.csv          4.4 KB   6 rows
+   web\data\decoupling_data.js           98.7 KB   6 focus series, 104 context
+   check: decoupling_focus.csv reads back as 198 rows with no missing value in the plotted columns ... PASS
+   check: decoupling_data.js parses as JSON and holds the six focus series of 33 years each ... PASS
+
+checks: 18 passed, 0 failed

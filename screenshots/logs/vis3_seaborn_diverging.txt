@@ -1,0 +1,192 @@
+==============================================================================
+MODULE TWO - VISUALIZATION 3: DIVERGING SMALL MULTIPLES IN SEABORN
+==============================================================================
+   seaborn 0.13.2, matplotlib 3.11.2, font Segoe UI
+   figures 13 in wide at 200 dpi = 2600 px, for a 6.5 in slot in the report
+
+1. Data
+-------
+   inputs\decoupling_focus.csv: 198 rows, 6 countries, 1990-2022
+   check: 6 focus countries x 33 years, nothing missing in the plotted columns ... PASS
+   check: net balance = consumption - production per person (worst gap 8.3e-09 t) ... PASS
+
+2. Main figure: net balance per person, six facets
+--------------------------------------------------
+   screenshots\03_vis3_seaborn_diverging.png   2600 x 1980 px, 328 KB
+   as printed: 8 lines 2 px, 17 points 8 px + 2 px ring, gridlines 1 px, baselines 1.5 px,
+               wash opacity 0.42
+   text: 60 pieces, set in #0b0b0b, #52514e, #898781
+   check: main figure: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: main figure: title, subtitle, legend of 2 entries and source note are there ... PASS
+   check: main figure: every stroke is solid and every mark has its specified size ... PASS
+   check: main figure: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: main figure: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: main figure: none of the 27 barred words or phrases appears ... PASS
+   check: subtitle: says how to read the sign and names both colours ... PASS
+   check: legend: two entries, blue for the net importer, orange for the net exporter ... PASS
+   check: y-axis label carries the unit: 'Net balance, t CO2 per person' ... PASS
+   check: the facets are the focus countries in their fixed order, 2 rows x 3 columns ... PASS
+   check: each facet's line holds the 33 values of the file (worst gap 0.0e+00 t) ... PASS
+   check: the 17 labelled points are blue above zero and orange below ... PASS
+   check: all six facets share one y-axis (-3.02 to +8.42 t) and one x-axis ... PASS
+   United States crosses zero at 1991.92, 1992.14, 1997.25
+   India crosses zero at 1990.32, 1991.89, 1992.08
+   check: each wash stays on its side of zero and ends at the crossing (6 crossings) ... PASS
+   colours in the PNG, in the wash between baseline and line and on the line itself
+      United States  wash above zero  2004  +0.74 t  rgb(164, 196, 235)  blue
+      United States  line above zero  2004  +1.52 t  rgb(42, 120, 214)  blue
+      United States  line below zero  1996  -0.21 t  rgb(235, 104, 52)  orange
+      United Kingdom wash above zero  1998  +1.01 t  rgb(164, 196, 235)  blue
+      United Kingdom line above zero  2007  +3.34 t  rgb(42, 120, 214)  blue
+      Germany        wash above zero  1994  +1.01 t  rgb(164, 196, 235)  blue
+      Germany        line above zero  1995  +2.59 t  rgb(42, 120, 214)  blue
+      Sweden         wash above zero  1994  +3.00 t  rgb(164, 196, 235)  blue
+      Sweden         line above zero  1995  +5.47 t  rgb(42, 120, 214)  blue
+      China          wash below zero  2011  -0.53 t  rgb(244, 189, 167)  orange
+      China          line below zero  2006  -1.08 t  rgb(235, 104, 52)  orange
+      India          wash below zero  2013  -0.12 t  rgb(244, 189, 167)  orange
+      India          line below zero  2013  -0.28 t  rgb(235, 104, 52)  orange
+   check: PNG: the wash is blue above zero in 4 facets and orange below zero in 2 ... PASS
+   check: PNG: the line is blue above zero in 4 facets and orange below zero in 3 ... PASS
+   labels read back from the facets, t CO2 per person
+   country              1990       2022   furthest from zero
+   United States       -0.32    +1.49 t   +1.92 in 2006
+   United Kingdom      +1.12    +2.81 t   +3.34 in 2004
+   Germany             +1.82    +2.03 t   +3.30 in 1992
+   Sweden              +6.40    +2.86 t   +6.61 in 1992
+   China               -0.11    -0.90 t   -1.20 in 2008
+   India               +0.01    -0.34 t   (the 2022 value)
+   result: usa_net_pc_1990 = -0.3174
+   result: usa_net_pc_2022 = 1.4950
+   result: usa_net_pc_max = 1.9201
+   result: usa_net_pc_max_year = 2006
+   result: gbr_net_pc_1990 = 1.1167
+   result: gbr_net_pc_2022 = 2.8110
+   result: gbr_net_pc_max = 3.3445
+   result: gbr_net_pc_max_year = 2004
+   result: deu_net_pc_1990 = 1.8222
+   result: deu_net_pc_2022 = 2.0333
+   result: deu_net_pc_max = 3.2951
+   result: deu_net_pc_max_year = 1992
+   result: swe_net_pc_1990 = 6.3974
+   result: swe_net_pc_2022 = 2.8603
+   result: swe_net_pc_max = 6.6085
+   result: swe_net_pc_max_year = 1992
+   result: chn_net_pc_1990 = -0.1064
+   result: chn_net_pc_2022 = -0.9015
+   result: chn_net_pc_min = -1.2029
+   result: chn_net_pc_min_year = 2008
+   result: ind_net_pc_1990 = 0.0062
+   result: ind_net_pc_2022 = -0.3446
+   result: ind_net_pc_min = -0.3446
+   result: ind_net_pc_min_year = 2022
+   check: 17 labels: 1990, 2022, the year furthest from zero; signed, 2 dp, unit once ... PASS
+   check: the labelled values equal those in decoupling_summary.csv ... PASS
+   check: each facet header gives the country's income group from the summary ... PASS
+   result: usa_net_importer_since_year = 1998
+   check: the United States is a net importer from 1998 on, a net exporter in 1997 ... PASS
+   check: title: the four high-income countries end above zero, China and India below ... PASS
+
+3. Derivation plate: United Kingdom
+-----------------------------------
+   screenshots\03a_vis3_derivation_plate.png   2600 x 1320 px, 262 KB
+   as printed: 3 lines 2 px, 7 points 8 px + 2 px ring, gridlines 1 px, baselines 1.5 px,
+               wash opacity 0.42
+   text: 39 pieces, set in #0b0b0b, #52514e, #898781
+   check: plate: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: plate: title, subtitle, legend of 3 entries and source note are there ... PASS
+   check: plate: every stroke is solid and every mark has its specified size ... PASS
+   check: plate: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: plate: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: plate: none of the 27 barred words or phrases appears ... PASS
+   check: left panel: each line holds the 33 values of its account in the file ... PASS
+   check: left panel: the consumption line is blue and the production line orange ... PASS
+   check: right panel: line = consumption line - production line (gap 5.0e-09 t) ... PASS
+   check: right panel: its three labels match the country's facet in the main figure ... PASS
+   t CO2 per person          1990    2022   change
+   production-based         10.49    4.56     -57%
+   consumption-based        11.61    7.37     -36%
+   gap (net balance)        +1.12   +2.81
+   the right panel's vertical scale is 3.0 times the left panel's
+   result: gbr_prod_pc_1990 = 10.4927
+   result: gbr_prod_pc_2022 = 4.5632
+   result: gbr_prod_change_pct = -56.5105
+   result: gbr_cons_pc_1990 = 11.6094
+   result: gbr_cons_pc_2022 = 7.3742
+   result: gbr_cons_change_pct = -36.4805
+   result: plate_scale_ratio = 2.97
+   check: both panels give a year the same width, so the gap keeps its shape ... PASS
+   check: the plotted levels and changes equal decoupling_summary.csv ... PASS
+   check: subtitle: both accounts fell, production-based further, and the gap widened ... PASS
+   check: subtitle: the rounded numbers it prints still subtract to the rounded gap ... PASS
+
+4. Absolute balance: Mt CO2 in 1990, 2007, 2022
+-----------------------------------------------
+   screenshots\03b_vis3_absolute_balance.png   2600 x 1240 px, 204 KB
+   as printed: gridlines 1 px, baselines 1.5 px
+   text: 35 pieces, set in #0b0b0b, #52514e, #898781
+   check: bars: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: bars: title, subtitle, legend of 2 entries and source note are there ... PASS
+   check: bars: every stroke is solid and every mark has its specified size ... PASS
+   check: bars: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: bars: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: bars: none of the 27 barred words or phrases appears ... PASS
+   Mt CO2                 1990      2007      2022
+   United States           -80      +405      +511
+   United Kingdom          +64      +205      +192
+   Germany                +145      +189      +171
+   Sweden                  +55       +36       +30
+   China                  -123    -1,506    -1,285
+   India                    +5      -102      -491
+   result: usa_net_mt_1990 = -80.4204
+   result: usa_net_mt_2007 = 405.1846
+   result: usa_net_mt_2022 = 510.5859
+   result: gbr_net_mt_1990 = 64.0616
+   result: gbr_net_mt_2007 = 205.4099
+   result: gbr_net_mt_2022 = 191.6524
+   result: deu_net_mt_1990 = 145.2407
+   result: deu_net_mt_2007 = 189.0779
+   result: deu_net_mt_2022 = 170.9702
+   result: swe_net_mt_1990 = 54.7528
+   result: swe_net_mt_2007 = 36.0732
+   result: swe_net_mt_2022 = 29.9971
+   result: chn_net_mt_1990 = -122.7637
+   result: chn_net_mt_2007 = -1506.0029
+   result: chn_net_mt_2022 = -1284.7744
+   result: ind_net_mt_1990 = 5.3661
+   result: ind_net_mt_2007 = -102.3932
+   result: ind_net_mt_2022 = -491.1401
+   check: the 18 bars run from zero to the file's net_co2_mt (worst gap 2.3e-13 Mt) ... PASS
+   check: bars are blue for a net importer and orange for a net exporter ... PASS
+   check: PNG: the same colours at the middle of the 13 bars long enough to sample ... PASS
+   check: PNG: 5 long bars are square at the baseline and rounded at the data end ... PASS
+   check: every bar is 54 px thick in the PNG: 13 px as printed, cap 24 px ... PASS
+   check: the rows are the focus countries in their fixed order, the first on top ... PASS
+   check: the 1990 and 2022 bars equal net_mt_1990 and net_mt_2022 in the summary ... PASS
+   result: chn_net_mt_largest_since_year = 1994
+   check: title: China's balance in Mt is the largest of the six from 1994, not 1993 ... PASS
+   check: subtitle: per person China's 2022 balance is smaller than Sweden's ... PASS
+
+5. Territorial against consumption-based change in the net importers
+--------------------------------------------------------------------
+   change in CO2 per person, 1990-2022, and consumption over production in 2022
+   country           production  consumption  gap, points  cons / prod
+   United States         -26.9%       -18.3%         -8.7        1.101
+   United Kingdom        -56.5%       -36.5%        -20.0        1.616
+   Germany               -40.0%       -33.7%         -6.2        1.256
+   Sweden                -48.3%       -51.7%         +3.4        1.825
+   production-based CO2 fell further than consumption-based in 3 of the 4:
+   United States, United Kingdom, Germany
+   result: usa_change_gap_points = -8.6623
+   result: usa_cons_over_prod_2022 = 1.1010
+   result: gbr_change_gap_points = -20.0300
+   result: gbr_cons_over_prod_2022 = 1.6160
+   result: deu_change_gap_points = -6.2412
+   result: deu_cons_over_prod_2022 = 1.2560
+   result: swe_change_gap_points = 3.3897
+   result: swe_cons_over_prod_2022 = 1.8254
+   result: importers_with_larger_territorial_cut = 3
+   check: the net importers of 2022 are the four high-income countries ... PASS
+   check: these gaps and ratios equal decoupling_summary.csv ... PASS
+
+checks: 54 passed, 0 failed

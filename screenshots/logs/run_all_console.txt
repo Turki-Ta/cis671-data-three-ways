@@ -1,0 +1,1240 @@
+
+==============================================================================
+RUNNING fetch_inputs.py
+==============================================================================
+RAW INPUTS
+==============================================================================
+   check: owid-co2-data.csv (33,246,106 bytes) matches its recorded SHA-256 ... PASS
+   check: owid-co2-codebook.csv (24,149 bytes) matches its recorded SHA-256 ... PASS
+   check: worldbank_country_classification.json (113,590 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr.png (147,318 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr_chn.png (123,173 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr.csv (1,958 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_arrow_grid.png (410,955 bytes) matches its recorded SHA-256 ... PASS
+------------------------------------------------------------------------------
+inputs: all 7 files match
+-> exit 0 after 0.1s, log at screenshots\logs\fetch_inputs.txt
+
+==============================================================================
+RUNNING prepare_data.py
+==============================================================================
+==============================================================================
+MODULE TWO - DATA PREPARATION
+==============================================================================
+   window 1990-2022, base year 1990, focus: United States, United Kingdom, Germany, Sweden, China, India
+
+1. Raw file
+-----------
+   owid-co2-data.csv: 50,411 rows, 254 entities, years 1750-2024
+   gdp                          available 1820-2022
+   consumption_co2_per_capita   available 1990-2024
+   co2_per_capita               available 1750-2024
+
+2. Panel
+--------
+   218 countries have an ISO code and at least one row in 1990-2022
+   115 of them have all of population, gdp, co2, co2_per_capita, consumption_co2, consumption_co2_per_capita
+   in every one of the 33 years; the rest are dropped, not interpolated
+   5 of those carry placeholder consumption figures (equal to the production figure
+   to within 1 part in 100,000) in 39 country-years and are dropped as incomplete:
+      Belgium        1990-1998   (9 years)
+      Botswana       1990-1999   (10 years)
+      Luxembourg     1990-1998   (9 years)
+      South Africa   1990-1999   (10 years)
+      Tunisia             2021   (1 years)
+   110 countries remain; the closest the two accounts come in any of their years is 0.010% of production
+   result: complete_countries = 115
+   result: placeholder_countries = 5
+   result: placeholder_country_years = 39
+   check: panel is 110 countries x 33 years = 3,630 rows ... PASS
+   check: no missing value in any needed or derived column ... PASS
+   check: all six focus countries are in the panel ... PASS
+   check: no placeholder is left: the two CO2 accounts differ by more than 1 part in 100,000 in every row ... PASS
+
+3. Units and identities
+-----------------------
+   check: co2_per_capita = co2 x 1e6 / population (worst relative gap 1.1e-07) ... PASS
+   check: consumption_co2_per_capita = consumption_co2 x 1e6 / population (worst relative gap 1.0e-07) ... PASS
+   check: consumption_co2 - co2 equals OWID's trade_co2 (worst gap 0.0005 Mt) ... PASS
+   check: net balance per person agrees with net balance in Mt (worst gap 0.0000 t) ... PASS
+   GDP per capita in the panel runs from $624 to $163,531 (2011 international-$)
+   net balance per person runs from -350.19 t to +36.17 t
+
+4. Focus countries
+------------------
+                              GDP/person     production t/person    consumption t/person
+   country            1990    2022   chg      1990    2022   chg      1990    2022   chg
+   United States    36,509  57,075  +56%     20.25   14.80  -27%     19.94   16.30  -18%
+   United Kingdom   26,246  38,358  +46%     10.49    4.56  -57%     11.61    7.37  -36%
+   Germany          25,287  46,495  +84%     13.23    7.94  -40%     15.06    9.98  -34%
+   Sweden           28,069  47,125  +68%      6.71    3.47  -48%     13.11    6.33  -52%
+   China             2,934  18,921 +545%      2.15    8.22 +282%      2.05    7.32 +258%
+   India             2,024   7,350 +263%      0.67    1.99 +197%      0.67    1.64 +143%
+
+   net balance = consumption - production, t CO2 per person (+ importer, - exporter)
+   country            1990    2007    2022     max (year)     min (year)   2022 Mt % of prod.
+   United States     -0.32   +1.34   +1.49   +1.92 (2006)   -0.40 (1991)      +511     +10.1%
+   United Kingdom    +1.12   +3.34   +2.81   +3.34 (2004)   +1.12 (1990)      +192     +61.6%
+   Germany           +1.82   +2.33   +2.03   +3.30 (1992)   +1.20 (2015)      +171     +25.6%
+   Sweden            +6.40   +3.94   +2.86   +6.61 (1992)   +2.27 (2020)       +30     +82.5%
+   China             -0.11   -1.14   -0.90   -0.06 (1992)   -1.20 (2008)     -1285     -11.0%
+   India             +0.01   -0.09   -0.34   +0.01 (1990)   -0.34 (2022)      -491     -17.3%
+
+   how much of the territorial cut a wider import balance gave back, 1990-2022
+   country         prod. cut t cons. cut t  net change t  offset share  cons / prod 2022  elasticity (cons)
+   United States          5.45        3.64         +1.81         33.2%             1.101              -0.45
+   United Kingdom         5.93        4.24         +1.69         28.6%             1.616              -1.20
+   Germany                5.29        5.08         +0.21          4.0%             1.256              -0.68
+   Sweden                 3.24        6.78         -3.54       -109.1%             1.825              -1.41
+   China                 -6.06       -5.27         -0.80         13.1%             0.890              +0.68
+   India                 -1.32       -0.97         -0.35         26.6%             0.827              +0.69
+   carbon intensity of income on the consumption account, kg CO2 per international-$
+   country            1990    2022   change
+   United States     0.546   0.286     -48%
+   United Kingdom    0.442   0.192     -57%
+   Germany           0.595   0.215     -64%
+   Sweden            0.467   0.134     -71%
+   China             0.697   0.387     -45%
+   India             0.333   0.223     -33%
+
+   result: usa_gdp_pc_1990 = 36508.8760
+   result: usa_gdp_pc_2022 = 57075.3361
+   result: usa_gdp_pc_change_pct = 56.3328
+   result: usa_prod_pc_1990 = 20.2537
+   result: usa_prod_pc_2022 = 14.8020
+   result: usa_prod_change_pct = -26.9170
+   result: usa_cons_pc_1990 = 19.9363
+   result: usa_cons_pc_2022 = 16.2970
+   result: usa_cons_change_pct = -18.2547
+   result: usa_cons_peak = 22.5081
+   result: usa_cons_peak_year = 2005.0000
+   result: usa_cons_change_to_peak_pct = 12.8997
+   result: usa_gdp_pc_change_to_cons_peak_pct = 35.9155
+   result: usa_cons_change_from_peak_pct = -27.5948
+   result: usa_gdp_pc_change_1990_2007_pct = 39.1397
+   result: usa_prod_change_1990_2007_pct = 0.1319
+   result: usa_cons_change_1990_2007_pct = 8.4593
+   result: usa_gdp_pc_change_2007_2022_pct = 12.3567
+   result: usa_prod_change_2007_2022_pct = -27.0133
+   result: usa_cons_change_2007_2022_pct = -24.6305
+   result: usa_prod_cut_t = 5.4517
+   result: usa_cons_cut_t = 3.6393
+   result: usa_net_change_t = 1.8124
+   result: usa_offset_share_pct = 33.2442
+   result: usa_change_gap_points = -8.6623
+   result: usa_cons_over_prod_2022 = 1.1010
+   result: usa_cons_intensity_1990 = 0.5461
+   result: usa_cons_intensity_2022 = 0.2855
+   result: usa_income_elasticity_cons = -0.4511
+   result: usa_income_elasticity_prod = -0.7018
+   result: usa_net_pc_1990 = -0.3174
+   result: usa_net_pc_2007 = 1.3424
+   result: usa_net_pc_2022 = 1.4950
+   result: usa_net_pc_max = 1.9201
+   result: usa_net_pc_max_year = 2006.0000
+   result: usa_net_pc_min = -0.3978
+   result: usa_net_pc_min_year = 1991.0000
+   result: usa_net_pc_mean_early = -0.0645
+   result: usa_net_pc_mean_late = 1.0233
+   result: usa_gdp_pc_mean_early = 39365.5281
+   result: usa_gdp_pc_mean_late = 53396.4756
+   result: usa_net_mt_1990 = -80.4204
+   result: usa_net_mt_2022 = 510.5859
+   result: usa_trade_share_2022_pct = 10.0998
+   result: usa_cumulative_co2_2022_mt = 425044.0625
+   result: usa_share_global_cumulative_2022_pct = 23.9809
+   result: gbr_gdp_pc_1990 = 26246.2653
+   result: gbr_gdp_pc_2022 = 38358.1242
+   result: gbr_gdp_pc_change_pct = 46.1470
+   result: gbr_prod_pc_1990 = 10.4927
+   result: gbr_prod_pc_2022 = 4.5632
+   result: gbr_prod_change_pct = -56.5105
+   result: gbr_cons_pc_1990 = 11.6094
+   result: gbr_cons_pc_2022 = 7.3742
+   result: gbr_cons_change_pct = -36.4805
+   result: gbr_cons_peak = 12.8747
+   result: gbr_cons_peak_year = 2004.0000
+   result: gbr_cons_change_to_peak_pct = 10.8986
+   result: gbr_gdp_pc_change_to_cons_peak_pct = 32.9456
+   result: gbr_cons_change_from_peak_pct = -42.7229
+   result: gbr_gdp_pc_change_1990_2007_pct = 40.4031
+   result: gbr_prod_change_1990_2007_pct = -13.3367
+   result: gbr_cons_change_1990_2007_pct = 7.0804
+   result: gbr_gdp_pc_change_2007_2022_pct = 4.0910
+   result: gbr_prod_change_2007_2022_pct = -49.8179
+   result: gbr_cons_change_2007_2022_pct = -40.6805
+   result: gbr_prod_cut_t = 5.9295
+   result: gbr_cons_cut_t = 4.2352
+   result: gbr_net_change_t = 1.6943
+   result: gbr_offset_share_pct = 28.5745
+   result: gbr_change_gap_points = -20.0300
+   result: gbr_cons_over_prod_2022 = 1.6160
+   result: gbr_cons_intensity_1990 = 0.4423
+   result: gbr_cons_intensity_2022 = 0.1922
+   result: gbr_income_elasticity_cons = -1.1960
+   result: gbr_income_elasticity_prod = -2.1944
+   result: gbr_net_pc_1990 = 1.1167
+   result: gbr_net_pc_2007 = 3.3381
+   result: gbr_net_pc_2022 = 2.8110
+   result: gbr_net_pc_max = 3.3445
+   result: gbr_net_pc_max_year = 2004.0000
+   result: gbr_net_pc_min = 1.1167
+   result: gbr_net_pc_min_year = 1990.0000
+   result: gbr_net_pc_mean_early = 1.5734
+   result: gbr_net_pc_mean_late = 2.5272
+   result: gbr_gdp_pc_mean_early = 27857.9941
+   result: gbr_gdp_pc_mean_late = 37314.4998
+   result: gbr_net_mt_1990 = 64.0616
+   result: gbr_net_mt_2022 = 191.6524
+   result: gbr_trade_share_2022_pct = 61.6012
+   result: gbr_cumulative_co2_2022_mt = 79458.7109
+   result: gbr_share_global_cumulative_2022_pct = 4.4830
+   result: deu_gdp_pc_1990 = 25286.6517
+   result: deu_gdp_pc_2022 = 46495.2810
+   result: deu_gdp_pc_change_pct = 83.8728
+   result: deu_prod_pc_1990 = 13.2333
+   result: deu_prod_pc_2022 = 7.9424
+   result: deu_prod_change_pct = -39.9818
+   result: deu_cons_pc_1990 = 15.0554
+   result: deu_cons_pc_2022 = 9.9756
+   result: deu_cons_change_pct = -33.7406
+   result: deu_cons_peak = 15.2735
+   result: deu_cons_peak_year = 1992.0000
+   result: deu_cons_change_to_peak_pct = 1.4483
+   result: deu_gdp_pc_change_to_cons_peak_pct = 7.7388
+   result: deu_cons_change_from_peak_pct = -34.6865
+   result: deu_gdp_pc_change_1990_2007_pct = 56.6459
+   result: deu_prod_change_1990_2007_pct = -21.3499
+   result: deu_cons_change_1990_2007_pct = -15.4212
+   result: deu_gdp_pc_change_2007_2022_pct = 17.3812
+   result: deu_prod_change_2007_2022_pct = -23.6897
+   result: deu_cons_change_2007_2022_pct = -21.6596
+   result: deu_prod_cut_t = 5.2909
+   result: deu_cons_cut_t = 5.0798
+   result: deu_net_change_t = 0.2111
+   result: deu_offset_share_pct = 3.9901
+   result: deu_change_gap_points = -6.2412
+   result: deu_cons_over_prod_2022 = 1.2560
+   result: deu_cons_intensity_1990 = 0.5954
+   result: deu_cons_intensity_2022 = 0.2146
+   result: deu_income_elasticity_cons = -0.6758
+   result: deu_income_elasticity_prod = -0.8382
+   result: deu_net_pc_1990 = 1.8222
+   result: deu_net_pc_2007 = 2.3257
+   result: deu_net_pc_2022 = 2.0333
+   result: deu_net_pc_max = 3.2951
+   result: deu_net_pc_max_year = 1992.0000
+   result: deu_net_pc_min = 1.2024
+   result: deu_net_pc_min_year = 2015.0000
+   result: deu_net_pc_mean_early = 2.2952
+   result: deu_net_pc_mean_late = 1.5296
+   result: deu_gdp_pc_mean_early = 28468.2584
+   result: deu_gdp_pc_mean_late = 45171.2653
+   result: deu_net_mt_1990 = 145.2407
+   result: deu_net_mt_2022 = 170.9702
+   result: deu_trade_share_2022_pct = 25.6004
+   result: deu_cumulative_co2_2022_mt = 93969.5859
+   result: deu_share_global_cumulative_2022_pct = 5.3017
+   result: swe_gdp_pc_1990 = 28069.4069
+   result: swe_gdp_pc_2022 = 47124.8912
+   result: swe_gdp_pc_change_pct = 67.8870
+   result: swe_prod_pc_1990 = 6.7087
+   result: swe_prod_pc_2022 = 3.4653
+   result: swe_prod_change_pct = -48.3453
+   result: swe_cons_pc_1990 = 13.1061
+   result: swe_cons_pc_2022 = 6.3257
+   result: swe_cons_change_pct = -51.7350
+   result: swe_cons_peak = 13.2436
+   result: swe_cons_peak_year = 1992.0000
+   result: swe_cons_change_to_peak_pct = 1.0489
+   result: swe_gdp_pc_change_to_cons_peak_pct = -3.0978
+   result: swe_cons_change_from_peak_pct = -52.2360
+   result: swe_gdp_pc_change_1990_2007_pct = 51.0521
+   result: swe_prod_change_1990_2007_pct = -13.8398
+   result: swe_cons_change_1990_2007_pct = -25.8103
+   result: swe_gdp_pc_change_2007_2022_pct = 11.1451
+   result: swe_prod_change_2007_2022_pct = -40.0480
+   result: swe_cons_change_2007_2022_pct = -34.9437
+   result: swe_prod_cut_t = 3.2433
+   result: swe_cons_cut_t = 6.7804
+   result: swe_net_change_t = -3.5371
+   result: swe_offset_share_pct = -109.0583
+   result: swe_change_gap_points = 3.3897
+   result: swe_cons_over_prod_2022 = 1.8254
+   result: swe_cons_intensity_1990 = 0.4669
+   result: swe_cons_intensity_2022 = 0.1342
+   result: swe_income_elasticity_cons = -1.4060
+   result: swe_income_elasticity_prod = -1.2750
+   result: swe_net_pc_1990 = 6.3974
+   result: swe_net_pc_2007 = 3.9432
+   result: swe_net_pc_2022 = 2.8603
+   result: swe_net_pc_max = 6.6085
+   result: swe_net_pc_max_year = 1992.0000
+   result: swe_net_pc_min = 2.2695
+   result: swe_net_pc_min_year = 2020.0000
+   result: swe_net_pc_mean_early = 4.7416
+   result: swe_net_pc_mean_late = 2.7147
+   result: swe_gdp_pc_mean_early = 28824.8701
+   result: swe_gdp_pc_mean_late = 44449.3113
+   result: swe_net_mt_1990 = 54.7528
+   result: swe_net_mt_2022 = 29.9971
+   result: swe_trade_share_2022_pct = 82.5408
+   result: swe_cumulative_co2_2022_mt = 5059.7485
+   result: swe_share_global_cumulative_2022_pct = 0.2855
+   result: chn_gdp_pc_1990 = 2934.4421
+   result: chn_gdp_pc_2022 = 18921.1365
+   result: chn_gdp_pc_change_pct = 544.7950
+   result: chn_prod_pc_1990 = 2.1529
+   result: chn_prod_pc_2022 = 8.2178
+   result: chn_prod_change_pct = 281.7095
+   result: chn_cons_pc_1990 = 2.0465
+   result: chn_cons_pc_2022 = 7.3163
+   result: chn_cons_change_pct = 257.5083
+   result: chn_cons_peak = 7.3163
+   result: chn_cons_peak_year = 2022.0000
+   result: chn_cons_change_to_peak_pct = 257.5083
+   result: chn_gdp_pc_change_to_cons_peak_pct = 544.7950
+   result: chn_cons_change_from_peak_pct = 0.0000
+   result: chn_gdp_pc_change_1990_2007_pct = 166.2420
+   result: chn_prod_change_1990_2007_pct = 144.3539
+   result: chn_cons_change_1990_2007_pct = 101.5549
+   result: chn_gdp_pc_change_2007_2022_pct = 142.1838
+   result: chn_prod_change_2007_2022_pct = 56.2117
+   result: chn_cons_change_2007_2022_pct = 77.3751
+   result: chn_prod_cut_t = -6.0649
+   result: chn_cons_cut_t = -5.2698
+   result: chn_net_change_t = -0.7951
+   result: chn_offset_share_pct = 13.1093
+   result: chn_change_gap_points = 24.2012
+   result: chn_cons_over_prod_2022 = 0.8903
+   result: chn_cons_intensity_1990 = 0.6974
+   result: chn_cons_intensity_2022 = 0.3867
+   result: chn_income_elasticity_cons = 0.6836
+   result: chn_income_elasticity_prod = 0.7187
+   result: chn_net_pc_1990 = -0.1064
+   result: chn_net_pc_2007 = -1.1359
+   result: chn_net_pc_2022 = -0.9015
+   result: chn_net_pc_max = -0.0617
+   result: chn_net_pc_max_year = 1992.0000
+   result: chn_net_pc_min = -1.2029
+   result: chn_net_pc_min_year = 2008.0000
+   result: chn_net_pc_mean_early = -0.2080
+   result: chn_net_pc_mean_late = -0.7940
+   result: chn_gdp_pc_mean_early = 3728.4976
+   result: chn_gdp_pc_mean_late = 15221.7777
+   result: chn_net_mt_1990 = -122.7637
+   result: chn_net_mt_2022 = -1284.7744
+   result: chn_trade_share_2022_pct = -10.9699
+   result: chn_cumulative_co2_2022_mt = 260625.9844
+   result: chn_share_global_cumulative_2022_pct = 14.7044
+   result: ind_gdp_pc_1990 = 2024.3344
+   result: ind_gdp_pc_2022 = 7349.5707
+   result: ind_gdp_pc_change_pct = 263.0611
+   result: ind_prod_pc_1990 = 0.6682
+   result: ind_prod_pc_2022 = 1.9862
+   result: ind_prod_change_pct = 197.2355
+   result: ind_cons_pc_1990 = 0.6744
+   result: ind_cons_pc_2022 = 1.6416
+   result: ind_cons_change_pct = 143.4117
+   result: ind_cons_peak = 1.6416
+   result: ind_cons_peak_year = 2022.0000
+   result: ind_cons_change_to_peak_pct = 143.4117
+   result: ind_gdp_pc_change_to_cons_peak_pct = 263.0611
+   result: ind_cons_change_from_peak_pct = 0.0000
+   result: ind_gdp_pc_change_1990_2007_pct = 82.6813
+   result: ind_prod_change_1990_2007_pct = 75.1432
+   result: ind_cons_change_1990_2007_pct = 60.7809
+   result: ind_gdp_pc_change_2007_2022_pct = 98.7402
+   result: ind_prod_change_2007_2022_pct = 69.7100
+   result: ind_cons_change_2007_2022_pct = 51.3934
+   result: ind_prod_cut_t = -1.3180
+   result: ind_cons_cut_t = -0.9672
+   result: ind_net_change_t = -0.3508
+   result: ind_offset_share_pct = 26.6140
+   result: ind_change_gap_points = 53.8238
+   result: ind_cons_over_prod_2022 = 0.8265
+   result: ind_cons_intensity_1990 = 0.3332
+   result: ind_cons_intensity_2022 = 0.2234
+   result: ind_income_elasticity_cons = 0.6899
+   result: ind_income_elasticity_prod = 0.8449
+   result: ind_net_pc_1990 = 0.0062
+   result: ind_net_pc_2007 = -0.0860
+   result: ind_net_pc_2022 = -0.3446
+   result: ind_net_pc_max = 0.0062
+   result: ind_net_pc_max_year = 1990.0000
+   result: ind_net_pc_min = -0.3446
+   result: ind_net_pc_min_year = 2022.0000
+   result: ind_net_pc_mean_early = -0.0284
+   result: ind_net_pc_mean_late = -0.2620
+   result: ind_gdp_pc_mean_early = 2260.2045
+   result: ind_gdp_pc_mean_late = 6228.5591
+   result: ind_net_mt_1990 = 5.3661
+   result: ind_net_mt_2022 = -491.1401
+   result: ind_trade_share_2022_pct = -17.3478
+   result: ind_cumulative_co2_2022_mt = 59816.2969
+   result: ind_share_global_cumulative_2022_pct = 3.3748
+   check: the four high-income focus countries grew GDP per person and cut consumption-based CO2 per person, 1990-2022 ... PASS
+   check: all four were net importers of embodied CO2 in 2022 ... PASS
+   check: China and India were net exporters of embodied CO2 in 2022 ... PASS
+   check: carbon intensity of income fell in all six countries (relative decoupling) ... PASS
+   check: consumption cut = production cut - change in the net balance, for all six ... PASS
+
+5. Income groups (World Bank classification for fiscal year 2027)
+-----------------------------------------------------------------
+   High income                     46 countries
+   Upper-middle income             30 countries
+   Lower-middle and low income     33 countries
+   absent from the World Bank API response, left out of the scatter: Taiwan
+   result: panel_countries = 110
+   result: classified_countries = 109
+
+   group balance, t CO2 per person           1990    2007    2022   importers in 2022
+   High income                              +0.33   +1.25   +1.16        36 of 46
+   Upper-middle income                      -0.12   -0.59   -0.46        21 of 30
+   Lower-middle and low income              -0.01   -0.04   -0.09        28 of 33
+
+   result: group_high_net_pc_1990 = 0.3257
+   result: group_high_net_mt_1990 = 371.6
+   result: group_high_net_pc_2007 = 1.2545
+   result: group_high_net_mt_2007 = 1567.1
+   result: group_high_net_pc_2022 = 1.1641
+   result: group_high_net_mt_2022 = 1566.3
+   result: group_high_net_mt_2008 = 1554.5
+   result: group_high_importers_1990 = 31
+   result: group_high_importers_2022 = 36
+   result: group_high_countries = 46
+   result: group_high_net_mt_extreme_year = 2006
+   result: group_high_net_mt_extreme = 1600.2
+   result: group_upper_middle_net_pc_1990 = -0.1194
+   result: group_upper_middle_net_mt_1990 = -254.5
+   result: group_upper_middle_net_pc_2007 = -0.5851
+   result: group_upper_middle_net_mt_2007 = -1498.2
+   result: group_upper_middle_net_pc_2022 = -0.4630
+   result: group_upper_middle_net_mt_2022 = -1325.1
+   result: group_upper_middle_net_mt_2008 = -1515.4
+   result: group_upper_middle_importers_1990 = 16
+   result: group_upper_middle_importers_2022 = 21
+   result: group_upper_middle_countries = 30
+   result: group_upper_middle_net_mt_extreme_year = 2006
+   result: group_upper_middle_net_mt_extreme = -1525.7
+   result: group_lower_net_pc_1990 = -0.0110
+   result: group_lower_net_mt_1990 = -17.5
+   result: group_lower_net_pc_2007 = -0.0363
+   result: group_lower_net_mt_2007 = -83.5
+   result: group_lower_net_pc_2022 = -0.0934
+   result: group_lower_net_mt_2022 = -274.1
+   result: group_lower_net_mt_2008 = -63.8
+   result: group_lower_importers_1990 = 24
+   result: group_lower_importers_2022 = 28
+   result: group_lower_countries = 33
+   result: group_lower_net_mt_extreme_year = 2013
+   result: group_lower_net_mt_extreme = -275.2
+   result: spearman_gdp_net_1990 = 0.3631
+   result: spearman_gdp_net_2007 = 0.3651
+   result: spearman_gdp_net_2022 = 0.4098
+   result: spearman_gdp_net_window_early = 0.3991
+   result: high_income_importers_window_early = 33
+   result: spearman_gdp_net_window_late = 0.4256
+   result: high_income_importers_window_late = 37
+
+   largest net exporters of embodied CO2 in 2022, Mt: China -1285, India -491, Russia -396, Iran -135, Vietnam -95
+   largest net importers of embodied CO2 in 2022, Mt: United States +511, United Kingdom +192, Japan +172, Germany +171, Singapore +147
+   result: exporters_2022 = 24
+   result: importers_2022 = 86
+   result: exporters_net_mt_2022 = -2771.3
+   result: importers_net_mt_2022 = 2760.3
+   result: exporters_top3_share_pct = 78.3744
+   result: exporter_1_net_mt_2022 = -1284.8
+   result: exporter_2_net_mt_2022 = -491.1
+   result: exporter_3_net_mt_2022 = -396.1
+   check: the three largest exporters in 2022 are China, India and Russia ... PASS
+   result: kuwait_net_mt_1991 = -473.2
+   result: group_high_net_mt_1991 = -12.2
+   result: group_high_net_mt_1991_without_kuwait = 461.0
+   check: high-income countries as a group were net importers in every year but 1991 (Kuwait oil fires), and in 1991 too once Kuwait is set aside ... PASS
+   check: upper-middle-income countries as a group were net exporters in every year ... PASS
+
+6. Files written
+----------------
+   inputs\decoupling_panel.csv          745.9 KB   110 countries x 33 years
+   inputs\decoupling_focus.csv           46.1 KB   6 countries x 33 years
+   inputs\decoupling_summary.csv          4.4 KB   6 rows
+   web\data\decoupling_data.js           98.7 KB   6 focus series, 104 context
+   check: decoupling_focus.csv reads back as 198 rows with no missing value in the plotted columns ... PASS
+   check: decoupling_data.js parses as JSON and holds the six focus series of 33 years each ... PASS
+
+checks: 18 passed, 0 failed
+-> exit 0 after 0.5s, log at screenshots\logs\prepare_data.txt
+
+==============================================================================
+RUNNING original_story.py
+==============================================================================
+==============================================================================
+MODULE TWO - THE ORIGINAL STORY'S CHARTS
+==============================================================================
+
+1. Originals re-saved as PNG, no resampling
+-------------------------------------------
+   check: original_owid_line_chart_gbr.png is present in inputs/ ... PASS
+   inputs\original_owid_line_chart_gbr.png  1700 x 1200 px  ->  screenshots\00a_original_owid_line_chart.png
+   check: 00a_original_owid_line_chart.png has the original's pixel dimensions (1700 x 1200) ... PASS
+   result: original_line_chart_width_px = 1700
+   result: original_line_chart_height_px = 1200
+   check: original_owid_line_chart_gbr_chn.png is present in inputs/ ... PASS
+   inputs\original_owid_line_chart_gbr_chn.png  1700 x 1200 px  ->  screenshots\00b_original_owid_two_countries.png
+   check: 00b_original_owid_two_countries.png has the original's pixel dimensions (1700 x 1200) ... PASS
+   result: original_two_countries_width_px = 1700
+   result: original_two_countries_height_px = 1200
+   check: original_owid_arrow_grid.png is present in inputs/ ... PASS
+   inputs\original_owid_arrow_grid.png  2614 x 2736 px  ->  screenshots\00c_original_owid_arrow_grid.png
+   check: 00c_original_owid_arrow_grid.png has the original's pixel dimensions (2614 x 2736) ... PASS
+   result: original_arrow_grid_width_px = 2614
+   result: original_arrow_grid_height_px = 2736
+
+2. The data behind the original line chart (United Kingdom)
+-----------------------------------------------------------
+   check: original_owid_line_chart_gbr.csv is present in inputs/ ... PASS
+   check: the chart's production-based CO2 per person is this project's series, 1990-2022 (worst gap 0.00000 t) ... PASS
+   check: the chart's consumption-based CO2 per person is this project's series (worst gap 0.00000 t) ... PASS
+   GDP per person, 1990 to 2022
+      original chart, World Bank, international-$ at 2021 prices:    33,531 ->    53,980  (+61.0%)
+      this project, Maddison 2023, international-$ at 2011 prices:   26,246 ->    38,358  (+46.1%)
+   result: original_gbr_gdp_pc_change_pct = 60.9849
+   result: maddison_gbr_gdp_pc_change_pct = 46.1470
+   result: original_gbr_prod_change_pct = -56.5105
+   result: original_gbr_cons_change_pct = -36.4805
+   result: original_chart_last_year_gdp = 2025
+   result: original_chart_last_year_cons = 2023
+   check: the two GDP series agree on direction and differ in size by more than 10 percentage points ... PASS
+
+   end-year sensitivity of a two-point comparison (the chart's own series)
+      2005 to 2020: GDP per person -0.8%, consumption-based CO2 per person -44.8%
+   result: original_gbr_gdp_pc_change_2005_2020_pct = -0.7745
+   result: original_gbr_cons_change_2005_2020_pct = -44.7974
+      2005 to 2019: GDP per person +10.5%, consumption-based CO2 per person -38.1%
+   result: original_gbr_gdp_pc_change_2005_2019_pct = 10.4947
+   result: original_gbr_cons_change_2005_2019_pct = -38.1333
+   result: original_gbr_cons_change_2019_2020_pct = -10.7717
+   result: original_gbr_cons_change_2020_2021_pct = 9.6400
+   check: on 2005-2020 the United Kingdom's GDP change is under the grid's 5% threshold, on 2005-2019 it is over it ... PASS
+
+checks: 11 passed, 0 failed
+-> exit 0 after 0.8s, log at screenshots\logs\original_story.txt
+
+==============================================================================
+RUNNING vis1_altair_linked.py
+==============================================================================
+==============================================================================
+VISUALIZATION 1 - ALTAIR LINKED VIEWS (INTERVAL BRUSH)
+==============================================================================
+
+1. Tables
+---------
+   scatter: 109 countries x 33 years = 3,597 rows (decoupling_panel.csv, countries with an income group)
+   left out, no World Bank income group: Taiwan
+   time series: 6 countries x 33 years = 198 rows (decoupling_focus.csv)
+   result: plotted_countries = 109
+   check: the scatter holds every panel country except Taiwan, 33 years each ... PASS
+   check: the time series holds the six focus countries, 33 years each, starting at 0 ... PASS
+   result: high_income_countries = 46
+   result: upper_middle_countries = 30
+   result: lower_countries = 33
+   check: the 18 line-end labels carry the 2022 changes in decoupling_summary.csv ... PASS
+   check: the labels of one country sit at least 14 px apart (closest pair 14.0 px) ... PASS
+
+2. Window means the scatter must show
+-------------------------------------
+                       net balance, t CO2 per person         GDP per capita, int-$
+   country           1990-1999  2013-2022  1990-2022   1990-1999 2013-2022 1990-2022
+   United States         -0.06      +1.02      +0.73      39,366    53,396    47,245
+   United Kingdom        +1.57      +2.53      +2.39      27,858    37,314    33,438
+   Germany               +2.30      +1.53      +1.99      28,468    45,171    37,188
+   Sweden                +4.74      +2.71      +3.54      28,825    44,449    37,661
+   China                 -0.21      -0.79      -0.63       3,728    15,222     8,628
+   India                 -0.03      -0.26      -0.12       2,260     6,229     3,968
+
+   result: usa_net_window_early = -0.0645
+   result: usa_gdp_window_early = 39365.5
+   result: usa_net_window_late = 1.0233
+   result: usa_gdp_window_late = 53396.5
+   result: gbr_net_window_early = 1.5734
+   result: gbr_gdp_window_early = 27858.0
+   result: gbr_net_window_late = 2.5272
+   result: gbr_gdp_window_late = 37314.5
+   result: deu_net_window_early = 2.2952
+   result: deu_gdp_window_early = 28468.3
+   result: deu_net_window_late = 1.5296
+   result: deu_gdp_window_late = 45171.3
+   result: swe_net_window_early = 4.7416
+   result: swe_gdp_window_early = 28824.9
+   result: swe_net_window_late = 2.7147
+   result: swe_gdp_window_late = 44449.3
+   result: chn_net_window_early = -0.2080
+   result: chn_gdp_window_early = 3728.5
+   result: chn_net_window_late = -0.7940
+   result: chn_gdp_window_late = 15221.8
+   result: ind_net_window_early = -0.0284
+   result: ind_gdp_window_early = 2260.2
+   result: ind_net_window_late = -0.2620
+   result: ind_gdp_window_late = 6228.6
+   check: the focus means of both windows equal those in decoupling_summary.csv (worst gap 6.0e-10) ... PASS
+   check: no focus country is ever pinned: its 198 single-year balances lie inside -6 to +8 t ... PASS
+
+3. Countries beyond the axis, and on each side of zero
+------------------------------------------------------
+   1990-1999: 2 beyond the axis (Qatar -11.7, Kuwait -38.2)
+   result: offscale_window_early = 2
+   result: offscale_above_window_early = 0
+   result: offscale_below_window_early = 2
+   2013-2022: 7 beyond the axis (Malta +24.0, Singapore +23.7, Hong Kong +12.2, Switzerland +12.0, Bahrain -8.8,
+   Qatar -10.5, Trinidad and Tobago -12.9)
+   result: offscale_window_late = 7
+   result: offscale_above_window_late = 4
+   result: offscale_below_window_late = 3
+   1990-2022: 8 beyond the axis (Singapore +18.1, Malta +11.4, Switzerland +9.4, Hong Kong +9.0, Bahrain -8.6,
+   Trinidad and Tobago -11.4, Kuwait -13.0, Qatar -16.3)
+   result: offscale_window_all = 8
+   result: offscale_above_window_all = 4
+   result: offscale_below_window_all = 4
+
+   net importers (mean balance above zero)     1990-1999  2013-2022  1990-2022    of
+   High income                                        33         37         35    46
+   result: high_income_importers_window_early = 33
+   result: high_income_importers_window_late = 37
+   result: high_income_importers_window_all = 35
+   Upper-middle income                                15         22         18    30
+   result: upper_middle_importers_window_early = 15
+   result: upper_middle_importers_window_late = 22
+   result: upper_middle_importers_window_all = 18
+   Lower-middle and low income                        23         28         26    33
+   result: lower_importers_window_early = 23
+   result: lower_importers_window_late = 28
+   result: lower_importers_window_all = 26
+   result: importers_window_early = 71
+   result: importers_window_late = 87
+   result: importers_window_all = 79
+   check: all 109 countries are plotted in each of the three windows, pinned or not ... PASS
+   result: windows_a_brush_can_select = 561
+   result: offscale_most_in_any_window = 8
+   check: in each of the 561 windows a brush can select, at most 8 of 109 countries leave the axis ... PASS
+   the corner captions cover GDP per capita below $3,585 with a balance above +6.9 t or below -4.9 t
+   check: no bubble or triangle sits under those captions in any window, nor on the plate ... PASS
+
+4. Files written
+----------------
+   screenshots\01_vis1_altair_linked.png          2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01a_vis1_brush_early.png           2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01b_vis1_brush_late.png            2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01_vis1_brush_comparison.png       2599 x 1428  px   (chart 1298 x 713 px)
+   web\altair_export.html                             1578 KB
+   web\altair_spec.json                                705 KB
+   check: the four static plates are 2600 px wide to within 2 px ... PASS
+   check: altair_spec.json parses back to the spec the chart was built from ... PASS
+   check: altair_export.html is self-contained: no script, stylesheet or font is loaded from a URL ... PASS
+
+5. Structure of the Vega-Lite spec
+----------------------------------
+   check: the spec holds an interval selection named brush, projected on x, that starts on 2013-2022 ... PASS
+   check: the brush is defined on the time series, whose x-domain is padded by half a year each side ... PASS
+   check: a dropdown bound to a parameter filters the top panel (six countries, United Kingdom first) ... PASS
+   check: a click sets that parameter on a focus country only; nothing else clears it or the brush ... PASS
+   check: the scatter is transform_filter(brush) -> transform_aggregate(mean ..., groupby country) ... PASS
+   check: x is a log scale and y a linear one ... PASS
+   check: the colour scale maps INCOME_ORDER to INCOME_COLORS, in that order ... PASS
+   check: bubble area is proportional to population: a linear size scale through zero ... PASS
+   check: no string in the spec outside the data holds a non-ASCII character ... PASS
+
+6. Text a reader can see
+------------------------
+   292 text marks read back from 4 rendered charts
+   check: every text mark is plain ASCII (hyphen for the minus sign and for ranges) ... PASS
+   check: none of the 27 barred words or phrases appears ... PASS
+   check: this source file is ASCII and no line is longer than 100 characters ... PASS
+
+7. The page in a browser
+------------------------
+   Microsoft Edge 154.0.4258.53, headless, 860 x 1060 viewport at device scale 2; the file is opened from disk
+   and the network is not used
+   check: both panels render, with the dropdown above them on United Kingdom and a clean console ... PASS
+   title '... 2013-2022 (10 years)'; 109 bubbles, 7 triangles; worst gap to pandas 1.8e-15
+   check: on load: the scatter shows the means of 2013-2022 ... PASS
+   check: the tooltip of Singapore, a triangle in the upper band, gives its true mean, +23.72 t ... PASS
+   check: hovering 2016, inside the window, sets the crosshair there; tooltip +43.3%, -42.2%, -23.8% ... PASS
+   title '... 1997-2003 (7 years)'; 109 bubbles, 5 triangles; worst gap to pandas 3.6e-14
+   check: after a mouse drag across 1997-2003: the scatter shows the means of 1997-2003 ... PASS
+   check: the drag moved 109 of the 109 bubbles ... PASS
+   title '... 2002-2008 (7 years)'; 109 bubbles, 5 triangles; worst gap to pandas 3.9e-14
+   check: after sliding the window 5 years by its label: the scatter shows the means of 2002-2008 ... PASS
+   check: the slide kept the window 122.8 px wide; over its label the pointer is the east-west arrow ... PASS
+   check: clicking the ringed bubble of Germany switches the top panel and the dropdown to it ... PASS
+   check: clicking Japan, which is not a focus country, changes nothing ... PASS
+   line ends after the change: GDP +545%, Production +282%, Consumption +258%
+   check: picking China in the dropdown redraws the top panel for it and leaves the window alone ... PASS
+   check: hovering China lights its bubble; tooltip: mean net balance -0.87 t over 2002-2008 ... PASS
+   screenshots\01c_vis1_browser_brushed.png: 1720 x 2120 px, taken with the brush on 2002-2008, China in the
+   dropdown and the pointer on its bubble
+   result: browser_window_first_year = 2002
+   result: browser_window_last_year = 2008
+   result: chn_net_window_browser = -0.8710
+   result: ind_net_window_browser = -0.0867
+   result: usa_net_window_browser = 1.4521
+   result: deu_net_window_browser = 2.0346
+   result: gbr_net_window_browser = 3.1869
+   result: swe_net_window_browser = 3.4413
+   check: with the dropdown focused, the down-arrow key moves it on to India ... PASS
+   check: a double click in the scatter changes neither the window nor the country ... PASS
+   title '... 1990-2022 (all 33 years, no window brushed)'; 109 bubbles, 8 triangles; worst gap to pandas
+   7.1e-15
+   check: after one click on the top panel: the scatter shows the means of 1990-2022, all years ... PASS
+   title '... 2010-2019 (10 years)'; 109 bubbles, 7 triangles; worst gap to pandas 2.3e-14
+   check: after a mouse drag right to left across 2010-2019: the scatter shows the means of 2010-2019 ... PASS
+   check: the drag moved 109 of the 109 bubbles ... PASS
+   check: a brush from 2004.6 to 2004.9 holds no year: the scatter is empty and its title says why ... PASS
+   check: no error or warning reached the console during the whole session ... PASS
+   Verified above with real pointer events and key presses: drawing, sliding and
+   clearing the brush, both hover layers, the dropdown and the click on a bubble,
+   each compared with pandas. Not verified: touch input, and any browser other
+   than Edge.
+
+checks: 43 passed, 0 failed
+-> exit 0 after 11.7s, log at screenshots\logs\vis1_altair_linked.txt
+
+==============================================================================
+RUNNING vis3_seaborn_diverging.py
+==============================================================================
+==============================================================================
+MODULE TWO - VISUALIZATION 3: DIVERGING SMALL MULTIPLES IN SEABORN
+==============================================================================
+   seaborn 0.13.2, matplotlib 3.11.2, font Segoe UI
+   figures 13 in wide at 200 dpi = 2600 px, for a 6.5 in slot in the report
+
+1. Data
+-------
+   inputs\decoupling_focus.csv: 198 rows, 6 countries, 1990-2022
+   check: 6 focus countries x 33 years, nothing missing in the plotted columns ... PASS
+   check: net balance = consumption - production per person (worst gap 8.3e-09 t) ... PASS
+
+2. Main figure: net balance per person, six facets
+--------------------------------------------------
+   screenshots\03_vis3_seaborn_diverging.png   2600 x 1980 px, 328 KB
+   as printed: 8 lines 2 px, 17 points 8 px + 2 px ring, gridlines 1 px, baselines 1.5 px,
+               wash opacity 0.42
+   text: 60 pieces, set in #0b0b0b, #52514e, #898781
+   check: main figure: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: main figure: title, subtitle, legend of 2 entries and source note are there ... PASS
+   check: main figure: every stroke is solid and every mark has its specified size ... PASS
+   check: main figure: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: main figure: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: main figure: none of the 27 barred words or phrases appears ... PASS
+   check: subtitle: says how to read the sign and names both colours ... PASS
+   check: legend: two entries, blue for the net importer, orange for the net exporter ... PASS
+   check: y-axis label carries the unit: 'Net balance, t CO2 per person' ... PASS
+   check: the facets are the focus countries in their fixed order, 2 rows x 3 columns ... PASS
+   check: each facet's line holds the 33 values of the file (worst gap 0.0e+00 t) ... PASS
+   check: the 17 labelled points are blue above zero and orange below ... PASS
+   check: all six facets share one y-axis (-3.02 to +8.42 t) and one x-axis ... PASS
+   United States crosses zero at 1991.92, 1992.14, 1997.25
+   India crosses zero at 1990.32, 1991.89, 1992.08
+   check: each wash stays on its side of zero and ends at the crossing (6 crossings) ... PASS
+   colours in the PNG, in the wash between baseline and line and on the line itself
+      United States  wash above zero  2004  +0.74 t  rgb(164, 196, 235)  blue
+      United States  line above zero  2004  +1.52 t  rgb(42, 120, 214)  blue
+      United States  line below zero  1996  -0.21 t  rgb(235, 104, 52)  orange
+      United Kingdom wash above zero  1998  +1.01 t  rgb(164, 196, 235)  blue
+      United Kingdom line above zero  2007  +3.34 t  rgb(42, 120, 214)  blue
+      Germany        wash above zero  1994  +1.01 t  rgb(164, 196, 235)  blue
+      Germany        line above zero  1995  +2.59 t  rgb(42, 120, 214)  blue
+      Sweden         wash above zero  1994  +3.00 t  rgb(164, 196, 235)  blue
+      Sweden         line above zero  1995  +5.47 t  rgb(42, 120, 214)  blue
+      China          wash below zero  2011  -0.53 t  rgb(244, 189, 167)  orange
+      China          line below zero  2006  -1.08 t  rgb(235, 104, 52)  orange
+      India          wash below zero  2013  -0.12 t  rgb(244, 189, 167)  orange
+      India          line below zero  2013  -0.28 t  rgb(235, 104, 52)  orange
+   check: PNG: the wash is blue above zero in 4 facets and orange below zero in 2 ... PASS
+   check: PNG: the line is blue above zero in 4 facets and orange below zero in 3 ... PASS
+   labels read back from the facets, t CO2 per person
+   country              1990       2022   furthest from zero
+   United States       -0.32    +1.49 t   +1.92 in 2006
+   United Kingdom      +1.12    +2.81 t   +3.34 in 2004
+   Germany             +1.82    +2.03 t   +3.30 in 1992
+   Sweden              +6.40    +2.86 t   +6.61 in 1992
+   China               -0.11    -0.90 t   -1.20 in 2008
+   India               +0.01    -0.34 t   (the 2022 value)
+   result: usa_net_pc_1990 = -0.3174
+   result: usa_net_pc_2022 = 1.4950
+   result: usa_net_pc_max = 1.9201
+   result: usa_net_pc_max_year = 2006
+   result: gbr_net_pc_1990 = 1.1167
+   result: gbr_net_pc_2022 = 2.8110
+   result: gbr_net_pc_max = 3.3445
+   result: gbr_net_pc_max_year = 2004
+   result: deu_net_pc_1990 = 1.8222
+   result: deu_net_pc_2022 = 2.0333
+   result: deu_net_pc_max = 3.2951
+   result: deu_net_pc_max_year = 1992
+   result: swe_net_pc_1990 = 6.3974
+   result: swe_net_pc_2022 = 2.8603
+   result: swe_net_pc_max = 6.6085
+   result: swe_net_pc_max_year = 1992
+   result: chn_net_pc_1990 = -0.1064
+   result: chn_net_pc_2022 = -0.9015
+   result: chn_net_pc_min = -1.2029
+   result: chn_net_pc_min_year = 2008
+   result: ind_net_pc_1990 = 0.0062
+   result: ind_net_pc_2022 = -0.3446
+   result: ind_net_pc_min = -0.3446
+   result: ind_net_pc_min_year = 2022
+   check: 17 labels: 1990, 2022, the year furthest from zero; signed, 2 dp, unit once ... PASS
+   check: the labelled values equal those in decoupling_summary.csv ... PASS
+   check: each facet header gives the country's income group from the summary ... PASS
+   result: usa_net_importer_since_year = 1998
+   check: the United States is a net importer from 1998 on, a net exporter in 1997 ... PASS
+   check: title: the four high-income countries end above zero, China and India below ... PASS
+
+3. Derivation plate: United Kingdom
+-----------------------------------
+   screenshots\03a_vis3_derivation_plate.png   2600 x 1320 px, 262 KB
+   as printed: 3 lines 2 px, 7 points 8 px + 2 px ring, gridlines 1 px, baselines 1.5 px,
+               wash opacity 0.42
+   text: 39 pieces, set in #0b0b0b, #52514e, #898781
+   check: plate: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: plate: title, subtitle, legend of 3 entries and source note are there ... PASS
+   check: plate: every stroke is solid and every mark has its specified size ... PASS
+   check: plate: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: plate: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: plate: none of the 27 barred words or phrases appears ... PASS
+   check: left panel: each line holds the 33 values of its account in the file ... PASS
+   check: left panel: the consumption line is blue and the production line orange ... PASS
+   check: right panel: line = consumption line - production line (gap 5.0e-09 t) ... PASS
+   check: right panel: its three labels match the country's facet in the main figure ... PASS
+   t CO2 per person          1990    2022   change
+   production-based         10.49    4.56     -57%
+   consumption-based        11.61    7.37     -36%
+   gap (net balance)        +1.12   +2.81
+   the right panel's vertical scale is 3.0 times the left panel's
+   result: gbr_prod_pc_1990 = 10.4927
+   result: gbr_prod_pc_2022 = 4.5632
+   result: gbr_prod_change_pct = -56.5105
+   result: gbr_cons_pc_1990 = 11.6094
+   result: gbr_cons_pc_2022 = 7.3742
+   result: gbr_cons_change_pct = -36.4805
+   result: plate_scale_ratio = 2.97
+   check: both panels give a year the same width, so the gap keeps its shape ... PASS
+   check: the plotted levels and changes equal decoupling_summary.csv ... PASS
+   check: subtitle: both accounts fell, production-based further, and the gap widened ... PASS
+   check: subtitle: the rounded numbers it prints still subtract to the rounded gap ... PASS
+
+4. Absolute balance: Mt CO2 in 1990, 2007, 2022
+-----------------------------------------------
+   screenshots\03b_vis3_absolute_balance.png   2600 x 1240 px, 204 KB
+   as printed: gridlines 1 px, baselines 1.5 px
+   text: 35 pieces, set in #0b0b0b, #52514e, #898781
+   check: bars: the PNG is 2600 px wide, on the surface colour #fcfcfb ... PASS
+   check: bars: title, subtitle, legend of 2 entries and source note are there ... PASS
+   check: bars: every stroke is solid and every mark has its specified size ... PASS
+   check: bars: no text overlaps other text, sits on a mark or leaves the canvas ... PASS
+   check: bars: all text is plain ASCII and in ink, none in a data colour ... PASS
+   check: bars: none of the 27 barred words or phrases appears ... PASS
+   Mt CO2                 1990      2007      2022
+   United States           -80      +405      +511
+   United Kingdom          +64      +205      +192
+   Germany                +145      +189      +171
+   Sweden                  +55       +36       +30
+   China                  -123    -1,506    -1,285
+   India                    +5      -102      -491
+   result: usa_net_mt_1990 = -80.4204
+   result: usa_net_mt_2007 = 405.1846
+   result: usa_net_mt_2022 = 510.5859
+   result: gbr_net_mt_1990 = 64.0616
+   result: gbr_net_mt_2007 = 205.4099
+   result: gbr_net_mt_2022 = 191.6524
+   result: deu_net_mt_1990 = 145.2407
+   result: deu_net_mt_2007 = 189.0779
+   result: deu_net_mt_2022 = 170.9702
+   result: swe_net_mt_1990 = 54.7528
+   result: swe_net_mt_2007 = 36.0732
+   result: swe_net_mt_2022 = 29.9971
+   result: chn_net_mt_1990 = -122.7637
+   result: chn_net_mt_2007 = -1506.0029
+   result: chn_net_mt_2022 = -1284.7744
+   result: ind_net_mt_1990 = 5.3661
+   result: ind_net_mt_2007 = -102.3932
+   result: ind_net_mt_2022 = -491.1401
+   check: the 18 bars run from zero to the file's net_co2_mt (worst gap 2.3e-13 Mt) ... PASS
+   check: bars are blue for a net importer and orange for a net exporter ... PASS
+   check: PNG: the same colours at the middle of the 13 bars long enough to sample ... PASS
+   check: PNG: 5 long bars are square at the baseline and rounded at the data end ... PASS
+   check: every bar is 54 px thick in the PNG: 13 px as printed, cap 24 px ... PASS
+   check: the rows are the focus countries in their fixed order, the first on top ... PASS
+   check: the 1990 and 2022 bars equal net_mt_1990 and net_mt_2022 in the summary ... PASS
+   result: chn_net_mt_largest_since_year = 1994
+   check: title: China's balance in Mt is the largest of the six from 1994, not 1993 ... PASS
+   check: subtitle: per person China's 2022 balance is smaller than Sweden's ... PASS
+
+5. Territorial against consumption-based change in the net importers
+--------------------------------------------------------------------
+   change in CO2 per person, 1990-2022, and consumption over production in 2022
+   country           production  consumption  gap, points  cons / prod
+   United States         -26.9%       -18.3%         -8.7        1.101
+   United Kingdom        -56.5%       -36.5%        -20.0        1.616
+   Germany               -40.0%       -33.7%         -6.2        1.256
+   Sweden                -48.3%       -51.7%         +3.4        1.825
+   production-based CO2 fell further than consumption-based in 3 of the 4:
+   United States, United Kingdom, Germany
+   result: usa_change_gap_points = -8.6623
+   result: usa_cons_over_prod_2022 = 1.1010
+   result: gbr_change_gap_points = -20.0300
+   result: gbr_cons_over_prod_2022 = 1.6160
+   result: deu_change_gap_points = -6.2412
+   result: deu_cons_over_prod_2022 = 1.2560
+   result: swe_change_gap_points = 3.3897
+   result: swe_cons_over_prod_2022 = 1.8254
+   result: importers_with_larger_territorial_cut = 3
+   check: the net importers of 2022 are the four high-income countries ... PASS
+   check: these gaps and ratios equal decoupling_summary.csv ... PASS
+
+checks: 54 passed, 0 failed
+-> exit 0 after 2.3s, log at screenshots\logs\vis3_seaborn_diverging.txt
+
+==============================================================================
+RUNNING capture_web.py
+==============================================================================
+==============================================================================
+MODULE TWO - VISUALIZATION 2: WEB PAGE SELF-TEST AND CAPTURES
+==============================================================================
+   web/ served from a local port and from disk; browser: Microsoft Edge, headless
+
+1. Files
+--------
+   check: the page, the embed, the stylesheet, both scripts and the data file are in web/ ... PASS
+   check: vendor/d3.v7.min.js is a local copy of D3 7 with its licence line (https://d3js.org v7.9.0 Copyright 2010-2023 Mike Bostock) ... PASS
+   result: d3_version_major = 7
+   result: d3_version_minor = 9
+   check: no page, stylesheet or script loads anything from another site (no CDN, no web font, no remote image) ... PASS
+   check: every source file in web/ is plain ASCII ... PASS
+   check: d3_vis.js and d3_story.js put text into the page as text (textContent, never innerHTML or .html()) ... PASS
+   copied screenshots/03_vis3_seaborn_diverging.png to web/img/ (2600 x 1980 px)
+   Edge 154.0.4258.53, 198 rows of inputs/decoupling_focus.csv to check against
+
+2. The pages load
+-----------------
+   check: d3_embed.html over http: no console error, no failed request, no request outside the local server ... PASS
+   check: the browser runs D3 7 from the local copy ... PASS
+   check: the chart draws one path per focus country, in the order and colours of DECOUPLING_DATA ... PASS
+   check: inlined into a srcdoc iframe 1000 px wide, as the notebook embeds it, the chart draws with no error and no request of any kind ... PASS
+   in a frame 1000 x 860 px the page is 1081 px tall, so that frame scrolls by 221 px; 1082 px shows it whole
+   result: vis2_embed_height_px_at_1000_wide = 1082
+   check: index.html over http: no console error, no failed request, no request outside its own folder ... PASS
+   check: index.html over http: the D3 chart is drawn ... PASS
+   check: index.html over http: Visualization 1 is shown in its frame, which has a title for screen readers ... PASS
+   check: index.html over http: Visualization 3 is shown as an image with alt text ... PASS
+   check: index.html opened from disk (file://): no console error, no failed request, no request outside its own folder ... PASS
+   check: index.html opened from disk (file://): the D3 chart is drawn ... PASS
+   check: index.html opened from disk (file://): Visualization 1 is shown in its frame, which has a title for screen readers ... PASS
+   check: index.html opened from disk (file://): Visualization 3 is shown as an image with alt text ... PASS
+
+3. Visualization 2 under real mouse and keyboard input
+------------------------------------------------------
+   check: at 1300 px the controls sit in one row above the chart (63 px high) ... PASS
+   check: a mouse click on the slider track moves the year (2022 -> 2006), the readout and the marker ... PASS
+   check: arrow keys step the slider to 2007: readout, year range and table heading all say so ... PASS
+   check: the marker sits on the 2007 vertex and the full-strength path stops there (18 of 33 points) ... PASS
+   check: Play advances the year by itself (2007 -> 2009 and counting) and the button turns to Pause ... PASS
+   check: Pause holds it at a whole year (2009) ... PASS
+   check: at 77 pointer positions the tooltip is for the nearest plotted point when one is within 30 px (68 cases) and hidden when none is (9 cases) ... PASS
+   check: hovering the United Kingdom's 2007 point shows $36,851, 12.43 t, 9.09 t and +3.34 t, which is the CSV row (36,850.6, 12.4314, 9.0933, +3.3381) ... PASS
+   check: in the tooltip each value comes before its label, and the net balance carries its sign and says importer or exporter ... PASS
+   check: the hovered path is emphasised and the other five are dimmed ... PASS
+   check: moving the pointer away from every point hides the tooltip and restores the other paths ... PASS
+   check: a click on Germany in the legend removes its path, marker and label, and nothing else ... PASS
+   check: the five countries left keep their own colours, on the paths and in the legend ... PASS
+   check: a second click brings Germany back ... PASS
+   check: the page opens on the linear GDP axis, which starts at $0 ... PASS
+   check: the Log button moves the points (China's marker travels 341 px) and relabels the axis, which no longer starts at $0 ... PASS
+   check: the Linear button puts them back where they were ... PASS
+   check: the overlay checkbox adds a production-based path of 33 points for each country ... PASS
+   check: at 2009 each country has a consumption and a production marker on one vertical, consumption on top where the balance is positive, and the 6 gap labels shown equal the net balance in the CSV ... PASS
+   check: the y-axis title and the key now name both accounts ... PASS
+   check: a point on a production-based path can be hovered too (Sweden, 1995) ... PASS
+   check: the context checkbox draws the other 104 countries as paths under the six, and the note under the chart says how many leave the frame ... PASS
+   check: hovering a grey path shows its name and nothing else (Argentina) ... PASS
+   check: Tab from the legend reaches the plot and opens the readout for the first country at the scrubbed year (United States, 2009) ... PASS
+   check: arrow keys move it along and across the paths (two years back, one country down: United Kingdom, 2007) and the same values are announced ... PASS
+   check: Home and End jump to 1990 and 2022, and Escape closes the readout ... PASS
+   check: keyboard focus on the plot is visible (it draws an outline) ... PASS
+   check: none of that raised an error or a failed request ... PASS
+   result: gbr_net_pc_2007 = 3.3400
+
+4. Story steps and state in the URL
+-----------------------------------
+   check: the page wiring uses the same pivot year as scripts/common.py (2007) ... PASS
+   check: step '1 1990-2007: growth, mixed footprints' sets year 2007, overlay off, and its caption quotes 6 numbers that match the CSV ... PASS
+      By 2007 all six were richer than in 1990. Consumption-based CO2 per capita was higher in the United States (+8%), the United Kingdom (+7%), China (+102%) and India (+61%), and lower in Germany (-15%) and Sweden (-26%).
+   check: step '2 2007-2022: the turn down' sets year 2022, overlay off, and its caption quotes 8 numbers that match the CSV ... PASS
+      From 2007 to 2022 consumption-based CO2 per capita fell in all four high-income countries: by 25% in the United States, 41% in the United Kingdom, 22% in Germany and 35% in Sweden. GDP per capita still grew in each (+12%, +4%, +17% and +11%).
+   check: step '3 China and India: up and to the right' sets year 2022, overlay off, and its caption quotes 8 numbers that match the CSV ... PASS
+      China's GDP per capita rose 545% from 1990 to 2022 and its consumption-based CO2 per capita 258%, from 2.0 t to 7.3 t. India's rose 263% and 143%, from 0.7 t to 1.6 t.
+   check: step '4 The gap: emitted or consumed' sets year 2022, overlay on, and its caption quotes 6 numbers that match the CSV ... PASS
+      The thin line is production-based CO2, emitted inside the country; its gap to the thick line is the net balance. In 2022 that was +1.49 t per person in the United States, +2.81 t in the United Kingdom, +2.03 t in Germany and +2.86 t in Sweden (net importers), and -0.90 t per person in China and -0.34 t in India (net exporters).
+   check: the address bar follows the state (overlay=1 after the last step) ... PASS
+   check: changing the year by hand clears the step and its caption ... PASS
+   check: with motion allowed, the first step plays the paths from 1990 and stops at 2007 ... PASS
+   check: with prefers-reduced-motion, Play steps a whole year at a time (at 1992 after 1.7 s, marker exactly on a vertex) ... PASS
+   check: ?year=2007&x=log&overlay=1&context=1&only=United%20Kingdom,China sets the first state: 2007, log, overlay and context on, two countries ... PASS
+
+5. What is drawn against what is in the CSV
+-------------------------------------------
+   check: linear scale: the 3 grey guides are the lines of 0.15, 0.3, 0.6 kg CO2 per $ of GDP (worst gap 0.0002 t over the points inside the plot) ... PASS
+   linear x-axis: scale fitted to the 13 gridlines as drawn (worst residual 0.0000 px), then 396 vertices read back
+   check: linear scale: the tick labels say what the gridlines are, and the gridlines are linear in pixels ... PASS
+   check: linear scale: all six consumption-based and production-based paths, 33 points each, read back to the CSV within 0.0106% of GDP per capita and 0.0003 t of CO2 per capita ... PASS
+   result: vis2_linear_worst_gdp_error_pct = 0.0106
+   result: vis2_linear_worst_co2_error_t = 0.0003
+   check: linear scale: each of the 24 direction chevrons lies on its path and points along it in screen space ... PASS
+   check: log scale: the 3 grey guides are the lines of 0.15, 0.3, 0.6 kg CO2 per $ of GDP (worst gap 0.0005 t over the points inside the plot) ... PASS
+   log x-axis: scale fitted to the 11 gridlines as drawn (worst residual 0.0000 px), then 396 vertices read back
+   check: log scale: the tick labels say what the gridlines are, and the gridlines are logarithmic in pixels ... PASS
+   check: log scale: all six consumption-based and production-based paths, 33 points each, read back to the CSV within 0.0033% of GDP per capita and 0.0003 t of CO2 per capita ... PASS
+   result: vis2_log_worst_gdp_error_pct = 0.0033
+   result: vis2_log_worst_co2_error_t = 0.0003
+   check: log scale: each of the 24 direction chevrons lies on its path and points along it in screen space ... PASS
+
+6. Numbers shown for 2022, and every value a tooltip can show
+-------------------------------------------------------------
+   table view, 2022         GDP   consumption   production       net   position
+   United States        $57,075       16.30 t      14.80 t   +1.49 t   net importer
+   United Kingdom       $38,358        7.37 t       4.56 t   +2.81 t   net importer
+   Germany              $46,495        9.98 t       7.94 t   +2.03 t   net importer
+   Sweden               $47,125        6.33 t       3.47 t   +2.86 t   net importer
+   China                $18,921        7.32 t       8.22 t   -0.90 t   net exporter
+   India                 $7,350        1.64 t       1.99 t   -0.34 t   net exporter
+   check: the table view lists all six countries for 2022 and every cell agrees with the CSV ... PASS
+   result: usa_gdp_pc_2022 = 57075.00
+   result: usa_cons_pc_2022 = 16.30
+   result: usa_prod_pc_2022 = 14.80
+   result: gbr_gdp_pc_2022 = 38358.00
+   result: gbr_cons_pc_2022 = 7.37
+   result: gbr_prod_pc_2022 = 4.56
+   result: deu_gdp_pc_2022 = 46495.00
+   result: deu_cons_pc_2022 = 9.98
+   result: deu_prod_pc_2022 = 7.94
+   result: swe_gdp_pc_2022 = 47125.00
+   result: swe_cons_pc_2022 = 6.33
+   result: swe_prod_pc_2022 = 3.47
+   result: chn_gdp_pc_2022 = 18921.00
+   result: chn_cons_pc_2022 = 7.32
+   result: chn_prod_pc_2022 = 8.22
+   result: ind_gdp_pc_2022 = 7350.00
+   result: ind_cons_pc_2022 = 1.64
+   result: ind_prod_pc_2022 = 1.99
+   result: usa_net_pc_2022 = 1.49
+   result: gbr_net_pc_2022 = 2.81
+   result: deu_net_pc_2022 = 2.03
+   result: swe_net_pc_2022 = 2.86
+   result: chn_net_pc_2022 = -0.90
+   result: ind_net_pc_2022 = -0.34
+   check: the six gap labels at 2022 are the net balance, rounded once from the CSV (United States +1.49 t, not +1.50 t) ... PASS
+   check: all 198 tooltips (792 values) agree with the CSV within $0.6 and 0.006 t (worst $0.55 and 0.0050 t) ... PASS
+   note: 9 of 792 values differ in their last digit from the CSV rounded once, because the data file rounds first:
+          United States 1995: shows $39,108, CSV rounds to $39,107
+          United States 2014: shows $51,039, CSV rounds to $51,038
+          United Kingdom 2017: shows $38,273, CSV rounds to $38,272
+          Germany 2007: shows $39,611, CSV rounds to $39,610
+          Sweden 1999: shows +2.67 t, CSV rounds to +2.68 t
+          China 2003: shows $5,600, CSV rounds to $5,599
+          China 2013: shows $11,549, CSV rounds to $11,548
+          China 2015: shows $13,109, CSV rounds to $13,108
+          India 1994: shows $2,184, CSV rounds to $2,183
+   result: vis2_last_digit_differences = 9
+
+7. Words and numbers on the page
+--------------------------------
+   check: index.html: every string a reader can meet is plain ASCII ... PASS
+   check: index.html: none of the 27 banned words or phrases appears ... PASS
+   check: the 24 numbers in the page copy (data-fact) equal the CSV ... PASS
+   check: the same numbers are typed into the HTML, for a reader without JavaScript ... PASS
+   check: claim: GDP per capita rose and CO2 per capita fell on both accounts in all four high-income countries ... PASS
+   check: claim: the production-based fall is the larger one in the United Kingdom, the United States and Germany, and the smaller one in Sweden ... PASS
+   check: claim: the four were net importers in 2022, China and India net exporters ... PASS
+   check: the page carries its title, its byline and the five copy blocks by id ... PASS
+   check: the article is linked as 'Hannah Ritchie (2021), Many countries have decoupled economic growth from CO2 emissions, even if we take offshored production into account, Our World in Data' ... PASS
+   check: accessibility basics: header, nav, main and footer landmarks, a page language, a name on every control, frame and image, and a light colour scheme ... PASS
+   check: d3_embed.html: every string a reader can meet is plain ASCII ... PASS
+   check: d3_embed.html: none of the 27 banned words or phrases appears ... PASS
+   check: text contrast on the chart surface: ink 19.2:1 and secondary ink 7.7:1 (body text, axes, labels; 4.5 needed), muted 3.5:1 (only the large year range and years not yet reached; 3 needed) ... PASS
+   result: contrast_ink_on_surface = 19.17
+   result: contrast_ink_2_on_surface = 7.73
+   result: contrast_muted_on_surface = 3.50
+
+8. Layout from 360 px to 1400 px
+--------------------------------
+      width         chart   content   names   years   state
+        360     306 x 380      1308       6       8   default
+   check: 360 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        360     306 x 380      1353       6       7   year=2007&overlay=1
+   check: 360 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        360     306 x 380      1308       6       9   x=log
+   check: 360 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1294       6       8   default
+   check: 390 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1338       6       8   year=2007&overlay=1
+   check: 390 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1294       6      10   x=log
+   check: 390 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1156       6       9   default
+   check: 768 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1178       6      11   year=2007&overlay=1
+   check: 768 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1156       6      12   x=log
+   check: 768 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1090       6      12   default
+   check: 1024 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1112       6      15   year=2007&overlay=1
+   check: 1024 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1090       6      14   x=log
+   check: 1024 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      17   default
+   check: 1400 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      18   year=2007&overlay=1
+   check: 1400 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      17   x=log
+   check: 1400 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+   check: index.html at 360 px has no sideways scroll (360 px of content in 360 px) ... PASS
+   check: index.html at 390 px has no sideways scroll (390 px of content in 390 px) ... PASS
+   check: index.html at 1400 px has no sideways scroll (1400 px of content in 1400 px) ... PASS
+
+9. Captures
+-----------
+   check: the hover capture was taken with the tooltip open on the United Kingdom, 2007, after a real mouse move ... PASS
+   check: the full-page capture was taken with nothing failing to load ... PASS
+   chart in the main capture: 1218 x 660 CSS px, plot area 1144 x 566; plate panels 405 CSS px wide; page 6232 CSS px tall
+   screenshots\02_vis2_d3_connected_scatter.png        2600 x 1876       340 KB
+   screenshots\02_vis2_scrub_comparison.png            2600 x 1290       261 KB
+   screenshots\02a_vis2_hover_tooltip.png              2600 x 1920       413 KB
+   screenshots\02b_web_page_full.png                   2600 x 12464     2250 KB
+   check: the chart capture, the hover capture, the plate and the page capture are each 2600 px wide ... PASS
+   screenshots\02c_web_page_overview.png               2600 x 1365      1313 KB   the page in three columns
+   check: the overview sheet holds the whole page capture in three columns ... PASS
+   result: vis2_capture_main_width_px = 2600
+   result: vis2_capture_main_height_px = 1876
+   result: vis2_capture_plate_width_px = 2600
+   result: vis2_capture_plate_height_px = 1290
+   result: vis2_capture_hover_width_px = 2600
+   result: vis2_capture_hover_height_px = 1920
+   result: vis2_capture_page_width_px = 2600
+   result: vis2_capture_page_height_px = 12464
+   result: vis2_chart_width_css_px = 1218
+   result: vis2_chart_height_css_px = 660
+
+checks: 101 passed, 0 failed
+-> exit 0 after 27.2s, log at screenshots\logs\capture_web.txt
+
+==============================================================================
+INDEPENDENT VERIFICATION OF THE PUBLISHED NUMBERS
+==============================================================================
+   Recomputed here from the raw files in inputs/ with the csv module and the
+   definitions alone, then compared with the 'result:' lines each script printed.
+
+fetch_inputs.py
+   publishes no values
+   the script's own checks: 7 passed, 0 failed
+
+prepare_data.py
+   335 values: 335 recomputed (335 agree, 0 disagree)
+   the script's own checks: 18 passed, 0 failed
+
+original_story.py
+   18 values: 12 recomputed (12 agree, 0 disagree), 6 measure the output, not the data
+   the script's own checks: 11 passed, 0 failed
+
+vis1_altair_linked.py
+   59 values: 57 recomputed (57 agree, 0 disagree), 2 measure the output, not the data
+   the script's own checks: 43 passed, 0 failed
+
+vis3_seaborn_diverging.py
+   60 values: 59 recomputed (59 agree, 0 disagree), 1 measures the output, not the data
+   the script's own checks: 54 passed, 0 failed
+
+capture_web.py
+   46 values: 25 recomputed (25 agree, 0 disagree), 21 measure the output, not the data
+   the script's own checks: 101 passed, 0 failed
+
+headline values (prepare_data.py against the recomputation)
+   result                                          script    recomputed   agreement
+   usa_gdp_pc_change_pct                          56.3328       56.3328   PASS
+   usa_prod_change_pct                           -26.9170      -26.9170   PASS
+   usa_cons_change_pct                           -18.2547      -18.2547   PASS
+   usa_net_pc_1990                                -0.3174       -0.3174   PASS
+   usa_net_pc_2022                                 1.4950        1.4950   PASS
+   usa_net_mt_2022                               510.5859      510.5859   PASS
+   usa_offset_share_pct                           33.2442       33.2442   PASS
+   gbr_gdp_pc_change_pct                          46.1470       46.1470   PASS
+   gbr_prod_change_pct                           -56.5105      -56.5105   PASS
+   gbr_cons_change_pct                           -36.4805      -36.4805   PASS
+   gbr_net_pc_1990                                 1.1167        1.1167   PASS
+   gbr_net_pc_2022                                 2.8110        2.8110   PASS
+   gbr_net_mt_2022                               191.6524      191.6524   PASS
+   gbr_offset_share_pct                           28.5745       28.5745   PASS
+   deu_gdp_pc_change_pct                          83.8728       83.8728   PASS
+   deu_prod_change_pct                           -39.9818      -39.9818   PASS
+   deu_cons_change_pct                           -33.7406      -33.7406   PASS
+   deu_net_pc_1990                                 1.8222        1.8222   PASS
+   deu_net_pc_2022                                 2.0333        2.0333   PASS
+   deu_net_mt_2022                               170.9702      170.9702   PASS
+   deu_offset_share_pct                            3.9901        3.9901   PASS
+   swe_gdp_pc_change_pct                          67.8870       67.8870   PASS
+   swe_prod_change_pct                           -48.3453      -48.3453   PASS
+   swe_cons_change_pct                           -51.7350      -51.7350   PASS
+   swe_net_pc_1990                                 6.3974        6.3974   PASS
+   swe_net_pc_2022                                 2.8603        2.8603   PASS
+   swe_net_mt_2022                                29.9971       29.9971   PASS
+   swe_offset_share_pct                         -109.0583     -109.0583   PASS
+   chn_gdp_pc_change_pct                         544.7950      544.7950   PASS
+   chn_prod_change_pct                           281.7095      281.7095   PASS
+   chn_cons_change_pct                           257.5083      257.5083   PASS
+   chn_net_pc_1990                                -0.1064       -0.1064   PASS
+   chn_net_pc_2022                                -0.9015       -0.9015   PASS
+   chn_net_mt_2022                             -1284.7744    -1284.7744   PASS
+   chn_offset_share_pct                           13.1093       13.1093   PASS
+   ind_gdp_pc_change_pct                         263.0611      263.0611   PASS
+   ind_prod_change_pct                           197.2355      197.2355   PASS
+   ind_cons_change_pct                           143.4117      143.4117   PASS
+   ind_net_pc_1990                                 0.0062        0.0062   PASS
+   ind_net_pc_2022                                -0.3446       -0.3446   PASS
+   ind_net_mt_2022                              -491.1401     -491.1401   PASS
+   ind_offset_share_pct                           26.6140       26.6140   PASS
+   complete_countries                               115.0         115.0   PASS
+   placeholder_country_years                         39.0          39.0   PASS
+   panel_countries                                  110.0         110.0   PASS
+   classified_countries                             109.0         109.0   PASS
+   group_high_net_mt_1990                           371.6         371.6   PASS
+   group_high_net_mt_2022                          1566.3        1566.3   PASS
+   group_upper_middle_net_mt_2022                 -1325.1       -1325.1   PASS
+   kuwait_net_mt_1991                              -473.2        -473.2   PASS
+
+------------------------------------------------------------------------------
+verification: all 488 recomputed values agree and no script check failed
+
+==============================================================================
+RUNNING render_logs.py
+==============================================================================
+Rendering terminal captures...
+  screenshots\terminal\01_prepare_data_panel.png  (45 lines, 109 cols)
+  screenshots\terminal\02_prepare_data_focus.png  (38 lines, 107 cols)
+  screenshots\terminal\03_prepare_data_groups.png  (15 lines, 85 cols)
+  screenshots\terminal\04_vis1_browser_checks.png  (48 lines, 110 cols)
+  screenshots\terminal\05_vis2_interaction_checks.png  (41 lines, 110 cols)
+  screenshots\terminal\06_vis3_main_figure_checks.png  (40 lines, 96 cols)
+  screenshots\terminal\07_run_all_verification.png  (42 lines, 87 cols)
+Done: 7 of 7 captures rendered.
+-> exit 0 after 1.6s, log at screenshots\logs\render_logs.txt
+
+==============================================================================
+  fetch_inputs.py                    0.1s
+  prepare_data.py                    0.5s
+  original_story.py                  0.8s
+  vis1_altair_linked.py             11.7s
+  vis3_seaborn_diverging.py          2.3s
+  capture_web.py                    27.2s
+  render_logs.py                     1.6s
+All 6 scripts ran, 488 of the 518 published values were re-derived from the raw files (the other 30 measure the output), and the terminal captures were rendered (44.2s).

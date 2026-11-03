@@ -1,0 +1,228 @@
+==============================================================================
+MODULE TWO - VISUALIZATION 2: WEB PAGE SELF-TEST AND CAPTURES
+==============================================================================
+   web/ served from a local port and from disk; browser: Microsoft Edge, headless
+
+1. Files
+--------
+   check: the page, the embed, the stylesheet, both scripts and the data file are in web/ ... PASS
+   check: vendor/d3.v7.min.js is a local copy of D3 7 with its licence line (https://d3js.org v7.9.0 Copyright 2010-2023 Mike Bostock) ... PASS
+   result: d3_version_major = 7
+   result: d3_version_minor = 9
+   check: no page, stylesheet or script loads anything from another site (no CDN, no web font, no remote image) ... PASS
+   check: every source file in web/ is plain ASCII ... PASS
+   check: d3_vis.js and d3_story.js put text into the page as text (textContent, never innerHTML or .html()) ... PASS
+   copied screenshots/03_vis3_seaborn_diverging.png to web/img/ (2600 x 1980 px)
+   Edge 154.0.4258.53, 198 rows of inputs/decoupling_focus.csv to check against
+
+2. The pages load
+-----------------
+   check: d3_embed.html over http: no console error, no failed request, no request outside the local server ... PASS
+   check: the browser runs D3 7 from the local copy ... PASS
+   check: the chart draws one path per focus country, in the order and colours of DECOUPLING_DATA ... PASS
+   check: inlined into a srcdoc iframe 1000 px wide, as the notebook embeds it, the chart draws with no error and no request of any kind ... PASS
+   in a frame 1000 x 860 px the page is 1081 px tall, so that frame scrolls by 221 px; 1082 px shows it whole
+   result: vis2_embed_height_px_at_1000_wide = 1082
+   check: index.html over http: no console error, no failed request, no request outside its own folder ... PASS
+   check: index.html over http: the D3 chart is drawn ... PASS
+   check: index.html over http: Visualization 1 is shown in its frame, which has a title for screen readers ... PASS
+   check: index.html over http: Visualization 3 is shown as an image with alt text ... PASS
+   check: index.html opened from disk (file://): no console error, no failed request, no request outside its own folder ... PASS
+   check: index.html opened from disk (file://): the D3 chart is drawn ... PASS
+   check: index.html opened from disk (file://): Visualization 1 is shown in its frame, which has a title for screen readers ... PASS
+   check: index.html opened from disk (file://): Visualization 3 is shown as an image with alt text ... PASS
+
+3. Visualization 2 under real mouse and keyboard input
+------------------------------------------------------
+   check: at 1300 px the controls sit in one row above the chart (63 px high) ... PASS
+   check: a mouse click on the slider track moves the year (2022 -> 2006), the readout and the marker ... PASS
+   check: arrow keys step the slider to 2007: readout, year range and table heading all say so ... PASS
+   check: the marker sits on the 2007 vertex and the full-strength path stops there (18 of 33 points) ... PASS
+   check: Play advances the year by itself (2007 -> 2009 and counting) and the button turns to Pause ... PASS
+   check: Pause holds it at a whole year (2009) ... PASS
+   check: at 77 pointer positions the tooltip is for the nearest plotted point when one is within 30 px (68 cases) and hidden when none is (9 cases) ... PASS
+   check: hovering the United Kingdom's 2007 point shows $36,851, 12.43 t, 9.09 t and +3.34 t, which is the CSV row (36,850.6, 12.4314, 9.0933, +3.3381) ... PASS
+   check: in the tooltip each value comes before its label, and the net balance carries its sign and says importer or exporter ... PASS
+   check: the hovered path is emphasised and the other five are dimmed ... PASS
+   check: moving the pointer away from every point hides the tooltip and restores the other paths ... PASS
+   check: a click on Germany in the legend removes its path, marker and label, and nothing else ... PASS
+   check: the five countries left keep their own colours, on the paths and in the legend ... PASS
+   check: a second click brings Germany back ... PASS
+   check: the page opens on the linear GDP axis, which starts at $0 ... PASS
+   check: the Log button moves the points (China's marker travels 341 px) and relabels the axis, which no longer starts at $0 ... PASS
+   check: the Linear button puts them back where they were ... PASS
+   check: the overlay checkbox adds a production-based path of 33 points for each country ... PASS
+   check: at 2009 each country has a consumption and a production marker on one vertical, consumption on top where the balance is positive, and the 6 gap labels shown equal the net balance in the CSV ... PASS
+   check: the y-axis title and the key now name both accounts ... PASS
+   check: a point on a production-based path can be hovered too (Sweden, 1995) ... PASS
+   check: the context checkbox draws the other 104 countries as paths under the six, and the note under the chart says how many leave the frame ... PASS
+   check: hovering a grey path shows its name and nothing else (Argentina) ... PASS
+   check: Tab from the legend reaches the plot and opens the readout for the first country at the scrubbed year (United States, 2009) ... PASS
+   check: arrow keys move it along and across the paths (two years back, one country down: United Kingdom, 2007) and the same values are announced ... PASS
+   check: Home and End jump to 1990 and 2022, and Escape closes the readout ... PASS
+   check: keyboard focus on the plot is visible (it draws an outline) ... PASS
+   check: none of that raised an error or a failed request ... PASS
+   result: gbr_net_pc_2007 = 3.3400
+
+4. Story steps and state in the URL
+-----------------------------------
+   check: the page wiring uses the same pivot year as scripts/common.py (2007) ... PASS
+   check: step '1 1990-2007: growth, mixed footprints' sets year 2007, overlay off, and its caption quotes 6 numbers that match the CSV ... PASS
+      By 2007 all six were richer than in 1990. Consumption-based CO2 per capita was higher in the United States (+8%), the United Kingdom (+7%), China (+102%) and India (+61%), and lower in Germany (-15%) and Sweden (-26%).
+   check: step '2 2007-2022: the turn down' sets year 2022, overlay off, and its caption quotes 8 numbers that match the CSV ... PASS
+      From 2007 to 2022 consumption-based CO2 per capita fell in all four high-income countries: by 25% in the United States, 41% in the United Kingdom, 22% in Germany and 35% in Sweden. GDP per capita still grew in each (+12%, +4%, +17% and +11%).
+   check: step '3 China and India: up and to the right' sets year 2022, overlay off, and its caption quotes 8 numbers that match the CSV ... PASS
+      China's GDP per capita rose 545% from 1990 to 2022 and its consumption-based CO2 per capita 258%, from 2.0 t to 7.3 t. India's rose 263% and 143%, from 0.7 t to 1.6 t.
+   check: step '4 The gap: emitted or consumed' sets year 2022, overlay on, and its caption quotes 6 numbers that match the CSV ... PASS
+      The thin line is production-based CO2, emitted inside the country; its gap to the thick line is the net balance. In 2022 that was +1.49 t per person in the United States, +2.81 t in the United Kingdom, +2.03 t in Germany and +2.86 t in Sweden (net importers), and -0.90 t per person in China and -0.34 t in India (net exporters).
+   check: the address bar follows the state (overlay=1 after the last step) ... PASS
+   check: changing the year by hand clears the step and its caption ... PASS
+   check: with motion allowed, the first step plays the paths from 1990 and stops at 2007 ... PASS
+   check: with prefers-reduced-motion, Play steps a whole year at a time (at 1992 after 1.7 s, marker exactly on a vertex) ... PASS
+   check: ?year=2007&x=log&overlay=1&context=1&only=United%20Kingdom,China sets the first state: 2007, log, overlay and context on, two countries ... PASS
+
+5. What is drawn against what is in the CSV
+-------------------------------------------
+   check: linear scale: the 3 grey guides are the lines of 0.15, 0.3, 0.6 kg CO2 per $ of GDP (worst gap 0.0002 t over the points inside the plot) ... PASS
+   linear x-axis: scale fitted to the 13 gridlines as drawn (worst residual 0.0000 px), then 396 vertices read back
+   check: linear scale: the tick labels say what the gridlines are, and the gridlines are linear in pixels ... PASS
+   check: linear scale: all six consumption-based and production-based paths, 33 points each, read back to the CSV within 0.0106% of GDP per capita and 0.0003 t of CO2 per capita ... PASS
+   result: vis2_linear_worst_gdp_error_pct = 0.0106
+   result: vis2_linear_worst_co2_error_t = 0.0003
+   check: linear scale: each of the 24 direction chevrons lies on its path and points along it in screen space ... PASS
+   check: log scale: the 3 grey guides are the lines of 0.15, 0.3, 0.6 kg CO2 per $ of GDP (worst gap 0.0005 t over the points inside the plot) ... PASS
+   log x-axis: scale fitted to the 11 gridlines as drawn (worst residual 0.0000 px), then 396 vertices read back
+   check: log scale: the tick labels say what the gridlines are, and the gridlines are logarithmic in pixels ... PASS
+   check: log scale: all six consumption-based and production-based paths, 33 points each, read back to the CSV within 0.0033% of GDP per capita and 0.0003 t of CO2 per capita ... PASS
+   result: vis2_log_worst_gdp_error_pct = 0.0033
+   result: vis2_log_worst_co2_error_t = 0.0003
+   check: log scale: each of the 24 direction chevrons lies on its path and points along it in screen space ... PASS
+
+6. Numbers shown for 2022, and every value a tooltip can show
+-------------------------------------------------------------
+   table view, 2022         GDP   consumption   production       net   position
+   United States        $57,075       16.30 t      14.80 t   +1.49 t   net importer
+   United Kingdom       $38,358        7.37 t       4.56 t   +2.81 t   net importer
+   Germany              $46,495        9.98 t       7.94 t   +2.03 t   net importer
+   Sweden               $47,125        6.33 t       3.47 t   +2.86 t   net importer
+   China                $18,921        7.32 t       8.22 t   -0.90 t   net exporter
+   India                 $7,350        1.64 t       1.99 t   -0.34 t   net exporter
+   check: the table view lists all six countries for 2022 and every cell agrees with the CSV ... PASS
+   result: usa_gdp_pc_2022 = 57075.00
+   result: usa_cons_pc_2022 = 16.30
+   result: usa_prod_pc_2022 = 14.80
+   result: gbr_gdp_pc_2022 = 38358.00
+   result: gbr_cons_pc_2022 = 7.37
+   result: gbr_prod_pc_2022 = 4.56
+   result: deu_gdp_pc_2022 = 46495.00
+   result: deu_cons_pc_2022 = 9.98
+   result: deu_prod_pc_2022 = 7.94
+   result: swe_gdp_pc_2022 = 47125.00
+   result: swe_cons_pc_2022 = 6.33
+   result: swe_prod_pc_2022 = 3.47
+   result: chn_gdp_pc_2022 = 18921.00
+   result: chn_cons_pc_2022 = 7.32
+   result: chn_prod_pc_2022 = 8.22
+   result: ind_gdp_pc_2022 = 7350.00
+   result: ind_cons_pc_2022 = 1.64
+   result: ind_prod_pc_2022 = 1.99
+   result: usa_net_pc_2022 = 1.49
+   result: gbr_net_pc_2022 = 2.81
+   result: deu_net_pc_2022 = 2.03
+   result: swe_net_pc_2022 = 2.86
+   result: chn_net_pc_2022 = -0.90
+   result: ind_net_pc_2022 = -0.34
+   check: the six gap labels at 2022 are the net balance, rounded once from the CSV (United States +1.49 t, not +1.50 t) ... PASS
+   check: all 198 tooltips (792 values) agree with the CSV within $0.6 and 0.006 t (worst $0.55 and 0.0050 t) ... PASS
+   note: 9 of 792 values differ in their last digit from the CSV rounded once, because the data file rounds first:
+          United States 1995: shows $39,108, CSV rounds to $39,107
+          United States 2014: shows $51,039, CSV rounds to $51,038
+          United Kingdom 2017: shows $38,273, CSV rounds to $38,272
+          Germany 2007: shows $39,611, CSV rounds to $39,610
+          Sweden 1999: shows +2.67 t, CSV rounds to +2.68 t
+          China 2003: shows $5,600, CSV rounds to $5,599
+          China 2013: shows $11,549, CSV rounds to $11,548
+          China 2015: shows $13,109, CSV rounds to $13,108
+          India 1994: shows $2,184, CSV rounds to $2,183
+   result: vis2_last_digit_differences = 9
+
+7. Words and numbers on the page
+--------------------------------
+   check: index.html: every string a reader can meet is plain ASCII ... PASS
+   check: index.html: none of the 27 banned words or phrases appears ... PASS
+   check: the 24 numbers in the page copy (data-fact) equal the CSV ... PASS
+   check: the same numbers are typed into the HTML, for a reader without JavaScript ... PASS
+   check: claim: GDP per capita rose and CO2 per capita fell on both accounts in all four high-income countries ... PASS
+   check: claim: the production-based fall is the larger one in the United Kingdom, the United States and Germany, and the smaller one in Sweden ... PASS
+   check: claim: the four were net importers in 2022, China and India net exporters ... PASS
+   check: the page carries its title, its byline and the five copy blocks by id ... PASS
+   check: the article is linked as 'Hannah Ritchie (2021), Many countries have decoupled economic growth from CO2 emissions, even if we take offshored production into account, Our World in Data' ... PASS
+   check: accessibility basics: header, nav, main and footer landmarks, a page language, a name on every control, frame and image, and a light colour scheme ... PASS
+   check: d3_embed.html: every string a reader can meet is plain ASCII ... PASS
+   check: d3_embed.html: none of the 27 banned words or phrases appears ... PASS
+   check: text contrast on the chart surface: ink 19.2:1 and secondary ink 7.7:1 (body text, axes, labels; 4.5 needed), muted 3.5:1 (only the large year range and years not yet reached; 3 needed) ... PASS
+   result: contrast_ink_on_surface = 19.17
+   result: contrast_ink_2_on_surface = 7.73
+   result: contrast_muted_on_surface = 3.50
+
+8. Layout from 360 px to 1400 px
+--------------------------------
+      width         chart   content   names   years   state
+        360     306 x 380      1308       6       8   default
+   check: 360 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        360     306 x 380      1353       6       7   year=2007&overlay=1
+   check: 360 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        360     306 x 380      1308       6       9   x=log
+   check: 360 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1294       6       8   default
+   check: 390 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1338       6       8   year=2007&overlay=1
+   check: 390 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        390     336 x 386      1294       6      10   x=log
+   check: 390 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1156       6       9   default
+   check: 768 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1178       6      11   year=2007&overlay=1
+   check: 768 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+        768     686 x 494      1156       6      12   x=log
+   check: 768 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1090       6      12   default
+   check: 1024 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1112       6      15   year=2007&overlay=1
+   check: 1024 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1024     942 x 528      1090       6      14   x=log
+   check: 1024 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      17   default
+   check: 1400 px, default: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      18   year=2007&overlay=1
+   check: 1400 px, year=2007&overlay=1: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+       1400    1318 x 660      1145       6      17   x=log
+   check: 1400 px, x=log: no sideways scroll, the viewBox matches the drawn size, every country is named, no label leaves the chart or overlaps another ... PASS
+   check: index.html at 360 px has no sideways scroll (360 px of content in 360 px) ... PASS
+   check: index.html at 390 px has no sideways scroll (390 px of content in 390 px) ... PASS
+   check: index.html at 1400 px has no sideways scroll (1400 px of content in 1400 px) ... PASS
+
+9. Captures
+-----------
+   check: the hover capture was taken with the tooltip open on the United Kingdom, 2007, after a real mouse move ... PASS
+   check: the full-page capture was taken with nothing failing to load ... PASS
+   chart in the main capture: 1218 x 660 CSS px, plot area 1144 x 566; plate panels 405 CSS px wide; page 6232 CSS px tall
+   screenshots\02_vis2_d3_connected_scatter.png        2600 x 1876       340 KB
+   screenshots\02_vis2_scrub_comparison.png            2600 x 1290       261 KB
+   screenshots\02a_vis2_hover_tooltip.png              2600 x 1920       413 KB
+   screenshots\02b_web_page_full.png                   2600 x 12464     2250 KB
+   check: the chart capture, the hover capture, the plate and the page capture are each 2600 px wide ... PASS
+   screenshots\02c_web_page_overview.png               2600 x 1365      1313 KB   the page in three columns
+   check: the overview sheet holds the whole page capture in three columns ... PASS
+   result: vis2_capture_main_width_px = 2600
+   result: vis2_capture_main_height_px = 1876
+   result: vis2_capture_plate_width_px = 2600
+   result: vis2_capture_plate_height_px = 1290
+   result: vis2_capture_hover_width_px = 2600
+   result: vis2_capture_hover_height_px = 1920
+   result: vis2_capture_page_width_px = 2600
+   result: vis2_capture_page_height_px = 12464
+   result: vis2_chart_width_css_px = 1218
+   result: vis2_chart_height_css_px = 660
+
+checks: 101 passed, 0 failed

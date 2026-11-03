@@ -1,0 +1,173 @@
+==============================================================================
+VISUALIZATION 1 - ALTAIR LINKED VIEWS (INTERVAL BRUSH)
+==============================================================================
+
+1. Tables
+---------
+   scatter: 109 countries x 33 years = 3,597 rows (decoupling_panel.csv, countries with an income group)
+   left out, no World Bank income group: Taiwan
+   time series: 6 countries x 33 years = 198 rows (decoupling_focus.csv)
+   result: plotted_countries = 109
+   check: the scatter holds every panel country except Taiwan, 33 years each ... PASS
+   check: the time series holds the six focus countries, 33 years each, starting at 0 ... PASS
+   result: high_income_countries = 46
+   result: upper_middle_countries = 30
+   result: lower_countries = 33
+   check: the 18 line-end labels carry the 2022 changes in decoupling_summary.csv ... PASS
+   check: the labels of one country sit at least 14 px apart (closest pair 14.0 px) ... PASS
+
+2. Window means the scatter must show
+-------------------------------------
+                       net balance, t CO2 per person         GDP per capita, int-$
+   country           1990-1999  2013-2022  1990-2022   1990-1999 2013-2022 1990-2022
+   United States         -0.06      +1.02      +0.73      39,366    53,396    47,245
+   United Kingdom        +1.57      +2.53      +2.39      27,858    37,314    33,438
+   Germany               +2.30      +1.53      +1.99      28,468    45,171    37,188
+   Sweden                +4.74      +2.71      +3.54      28,825    44,449    37,661
+   China                 -0.21      -0.79      -0.63       3,728    15,222     8,628
+   India                 -0.03      -0.26      -0.12       2,260     6,229     3,968
+
+   result: usa_net_window_early = -0.0645
+   result: usa_gdp_window_early = 39365.5
+   result: usa_net_window_late = 1.0233
+   result: usa_gdp_window_late = 53396.5
+   result: gbr_net_window_early = 1.5734
+   result: gbr_gdp_window_early = 27858.0
+   result: gbr_net_window_late = 2.5272
+   result: gbr_gdp_window_late = 37314.5
+   result: deu_net_window_early = 2.2952
+   result: deu_gdp_window_early = 28468.3
+   result: deu_net_window_late = 1.5296
+   result: deu_gdp_window_late = 45171.3
+   result: swe_net_window_early = 4.7416
+   result: swe_gdp_window_early = 28824.9
+   result: swe_net_window_late = 2.7147
+   result: swe_gdp_window_late = 44449.3
+   result: chn_net_window_early = -0.2080
+   result: chn_gdp_window_early = 3728.5
+   result: chn_net_window_late = -0.7940
+   result: chn_gdp_window_late = 15221.8
+   result: ind_net_window_early = -0.0284
+   result: ind_gdp_window_early = 2260.2
+   result: ind_net_window_late = -0.2620
+   result: ind_gdp_window_late = 6228.6
+   check: the focus means of both windows equal those in decoupling_summary.csv (worst gap 6.0e-10) ... PASS
+   check: no focus country is ever pinned: its 198 single-year balances lie inside -6 to +8 t ... PASS
+
+3. Countries beyond the axis, and on each side of zero
+------------------------------------------------------
+   1990-1999: 2 beyond the axis (Qatar -11.7, Kuwait -38.2)
+   result: offscale_window_early = 2
+   result: offscale_above_window_early = 0
+   result: offscale_below_window_early = 2
+   2013-2022: 7 beyond the axis (Malta +24.0, Singapore +23.7, Hong Kong +12.2, Switzerland +12.0, Bahrain -8.8,
+   Qatar -10.5, Trinidad and Tobago -12.9)
+   result: offscale_window_late = 7
+   result: offscale_above_window_late = 4
+   result: offscale_below_window_late = 3
+   1990-2022: 8 beyond the axis (Singapore +18.1, Malta +11.4, Switzerland +9.4, Hong Kong +9.0, Bahrain -8.6,
+   Trinidad and Tobago -11.4, Kuwait -13.0, Qatar -16.3)
+   result: offscale_window_all = 8
+   result: offscale_above_window_all = 4
+   result: offscale_below_window_all = 4
+
+   net importers (mean balance above zero)     1990-1999  2013-2022  1990-2022    of
+   High income                                        33         37         35    46
+   result: high_income_importers_window_early = 33
+   result: high_income_importers_window_late = 37
+   result: high_income_importers_window_all = 35
+   Upper-middle income                                15         22         18    30
+   result: upper_middle_importers_window_early = 15
+   result: upper_middle_importers_window_late = 22
+   result: upper_middle_importers_window_all = 18
+   Lower-middle and low income                        23         28         26    33
+   result: lower_importers_window_early = 23
+   result: lower_importers_window_late = 28
+   result: lower_importers_window_all = 26
+   result: importers_window_early = 71
+   result: importers_window_late = 87
+   result: importers_window_all = 79
+   check: all 109 countries are plotted in each of the three windows, pinned or not ... PASS
+   result: windows_a_brush_can_select = 561
+   result: offscale_most_in_any_window = 8
+   check: in each of the 561 windows a brush can select, at most 8 of 109 countries leave the axis ... PASS
+   the corner captions cover GDP per capita below $3,585 with a balance above +6.9 t or below -4.9 t
+   check: no bubble or triangle sits under those captions in any window, nor on the plate ... PASS
+
+4. Files written
+----------------
+   screenshots\01_vis1_altair_linked.png          2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01a_vis1_brush_early.png           2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01b_vis1_brush_late.png            2600 x 3147  px   (chart 822 x 995 px)
+   screenshots\01_vis1_brush_comparison.png       2599 x 1428  px   (chart 1298 x 713 px)
+   web\altair_export.html                             1578 KB
+   web\altair_spec.json                                705 KB
+   check: the four static plates are 2600 px wide to within 2 px ... PASS
+   check: altair_spec.json parses back to the spec the chart was built from ... PASS
+   check: altair_export.html is self-contained: no script, stylesheet or font is loaded from a URL ... PASS
+
+5. Structure of the Vega-Lite spec
+----------------------------------
+   check: the spec holds an interval selection named brush, projected on x, that starts on 2013-2022 ... PASS
+   check: the brush is defined on the time series, whose x-domain is padded by half a year each side ... PASS
+   check: a dropdown bound to a parameter filters the top panel (six countries, United Kingdom first) ... PASS
+   check: a click sets that parameter on a focus country only; nothing else clears it or the brush ... PASS
+   check: the scatter is transform_filter(brush) -> transform_aggregate(mean ..., groupby country) ... PASS
+   check: x is a log scale and y a linear one ... PASS
+   check: the colour scale maps INCOME_ORDER to INCOME_COLORS, in that order ... PASS
+   check: bubble area is proportional to population: a linear size scale through zero ... PASS
+   check: no string in the spec outside the data holds a non-ASCII character ... PASS
+
+6. Text a reader can see
+------------------------
+   292 text marks read back from 4 rendered charts
+   check: every text mark is plain ASCII (hyphen for the minus sign and for ranges) ... PASS
+   check: none of the 27 barred words or phrases appears ... PASS
+   check: this source file is ASCII and no line is longer than 100 characters ... PASS
+
+7. The page in a browser
+------------------------
+   Microsoft Edge 154.0.4258.53, headless, 860 x 1060 viewport at device scale 2; the file is opened from disk
+   and the network is not used
+   check: both panels render, with the dropdown above them on United Kingdom and a clean console ... PASS
+   title '... 2013-2022 (10 years)'; 109 bubbles, 7 triangles; worst gap to pandas 1.8e-15
+   check: on load: the scatter shows the means of 2013-2022 ... PASS
+   check: the tooltip of Singapore, a triangle in the upper band, gives its true mean, +23.72 t ... PASS
+   check: hovering 2016, inside the window, sets the crosshair there; tooltip +43.3%, -42.2%, -23.8% ... PASS
+   title '... 1997-2003 (7 years)'; 109 bubbles, 5 triangles; worst gap to pandas 3.6e-14
+   check: after a mouse drag across 1997-2003: the scatter shows the means of 1997-2003 ... PASS
+   check: the drag moved 109 of the 109 bubbles ... PASS
+   title '... 2002-2008 (7 years)'; 109 bubbles, 5 triangles; worst gap to pandas 3.9e-14
+   check: after sliding the window 5 years by its label: the scatter shows the means of 2002-2008 ... PASS
+   check: the slide kept the window 122.8 px wide; over its label the pointer is the east-west arrow ... PASS
+   check: clicking the ringed bubble of Germany switches the top panel and the dropdown to it ... PASS
+   check: clicking Japan, which is not a focus country, changes nothing ... PASS
+   line ends after the change: GDP +545%, Production +282%, Consumption +258%
+   check: picking China in the dropdown redraws the top panel for it and leaves the window alone ... PASS
+   check: hovering China lights its bubble; tooltip: mean net balance -0.87 t over 2002-2008 ... PASS
+   screenshots\01c_vis1_browser_brushed.png: 1720 x 2120 px, taken with the brush on 2002-2008, China in the
+   dropdown and the pointer on its bubble
+   result: browser_window_first_year = 2002
+   result: browser_window_last_year = 2008
+   result: chn_net_window_browser = -0.8710
+   result: ind_net_window_browser = -0.0867
+   result: usa_net_window_browser = 1.4521
+   result: deu_net_window_browser = 2.0346
+   result: gbr_net_window_browser = 3.1869
+   result: swe_net_window_browser = 3.4413
+   check: with the dropdown focused, the down-arrow key moves it on to India ... PASS
+   check: a double click in the scatter changes neither the window nor the country ... PASS
+   title '... 1990-2022 (all 33 years, no window brushed)'; 109 bubbles, 8 triangles; worst gap to pandas
+   7.1e-15
+   check: after one click on the top panel: the scatter shows the means of 1990-2022, all years ... PASS
+   title '... 2010-2019 (10 years)'; 109 bubbles, 7 triangles; worst gap to pandas 2.3e-14
+   check: after a mouse drag right to left across 2010-2019: the scatter shows the means of 2010-2019 ... PASS
+   check: the drag moved 109 of the 109 bubbles ... PASS
+   check: a brush from 2004.6 to 2004.9 holds no year: the scatter is empty and its title says why ... PASS
+   check: no error or warning reached the console during the whole session ... PASS
+   Verified above with real pointer events and key presses: drawing, sliding and
+   clearing the brush, both hover layers, the dropdown and the click on a bubble,
+   each compared with pandas. Not verified: touch input, and any browser other
+   than Edge.
+
+checks: 43 passed, 0 failed

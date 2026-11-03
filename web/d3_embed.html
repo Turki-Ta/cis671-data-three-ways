@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  d3_embed.html: Visualization 2 on its own. The same chart component and the
+  same controls as index.html, with no page chrome, for iframes and screenshots.
+
+  URL parameters set the first state, for example
+      d3_embed.html?year=2007&x=log&overlay=1&context=1&only=United%20Kingdom,China
+
+  data-fit-viewport lets the plot give up height so the page fits a frame of
+  fixed height without a second scrollbar. Everything loads from this folder:
+  no CDN, no web font, no network request.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Income against carbon footprint: six countries, 1990-2022</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="embed">
+<main>
+  <div data-decoupling-app data-fit-viewport data-title-tag="h1">
+    <noscript>This chart is drawn in the browser and needs JavaScript.</noscript>
+  </div>
+</main>
+<script src="vendor/d3.v7.min.js"></script>
+<script src="data/decoupling_data.js"></script>
+<script src="d3_vis.js"></script>
+<script src="d3_story.js"></script>
+</body>
+</html>

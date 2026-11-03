@@ -1,0 +1,5 @@
+[NbConvertApp] Converting notebook C:/Users/NoBody/Documents/cis vis/Module 2 Data Three Ways/module02_data_three_ways/notebooks/module02_story.ipynb to notebook
+C:\Users\NoBody\Documents\cis vis\Module 2 Data Three Ways\module02_data_three_ways\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 6793977 bytes to C:\Users\NoBody\Documents\cis vis\Module 2 Data Three Ways\module02_data_three_ways\notebooks\module02_story.ipynb

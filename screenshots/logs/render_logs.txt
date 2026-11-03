@@ -1,0 +1,9 @@
+Rendering terminal captures...
+  screenshots\terminal\01_prepare_data_panel.png  (45 lines, 109 cols)
+  screenshots\terminal\02_prepare_data_focus.png  (38 lines, 107 cols)
+  screenshots\terminal\03_prepare_data_groups.png  (15 lines, 85 cols)
+  screenshots\terminal\04_vis1_browser_checks.png  (48 lines, 110 cols)
+  screenshots\terminal\05_vis2_interaction_checks.png  (41 lines, 110 cols)
+  screenshots\terminal\06_vis3_main_figure_checks.png  (40 lines, 96 cols)
+  screenshots\terminal\07_run_all_verification.png  (42 lines, 87 cols)
+Done: 7 of 7 captures rendered.

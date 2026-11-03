@@ -1,0 +1,11 @@
+RAW INPUTS
+==============================================================================
+   check: owid-co2-data.csv (33,246,106 bytes) matches its recorded SHA-256 ... PASS
+   check: owid-co2-codebook.csv (24,149 bytes) matches its recorded SHA-256 ... PASS
+   check: worldbank_country_classification.json (113,590 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr.png (147,318 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr_chn.png (123,173 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_line_chart_gbr.csv (1,958 bytes) matches its recorded SHA-256 ... PASS
+   check: original_owid_arrow_grid.png (410,955 bytes) matches its recorded SHA-256 ... PASS
+------------------------------------------------------------------------------
+inputs: all 7 files match
